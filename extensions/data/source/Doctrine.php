@@ -11,6 +11,9 @@ namespace li3_doctrine\extensions\data\source;
 use \Doctrine_Manager;
 use \ReflectionProperty;
 
+/**
+ * This source introduces support for the Doctrine ORM into Lithium.
+ */
 class Doctrine extends \lithium\data\Source {
 
 	/**
