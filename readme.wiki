@@ -1,0 +1,61 @@
+#### Bootstrap
+
+To start using li3_doctrine, add the following line of code to your
+application's `config/bootstrap.php`:
+{{{
+Libraries::add('plugin', array('li3_doctrine' => array('bootstrap' => true)));
+}}}
+For this to work, your `li3_doctrine` directory must be visible within your
+`LITHIUM_LIBRARY_PATH` or your application's `libraries` directory.
+
+`doctrine` will need to be in your `LITHIUM_LIBRARY_PATH`. If you would like to
+use a different path, edit `li3_doctrine/config/bootstrap.php` and change the
+path to match the location on your system.
+
+#### Making a connection
+
+Connecting to a Doctrine managed backend is very easy. You can do so using the
+built-in Connections class provided by Lithium. Try using the following for
+your application's `config/connections.php`:
+{{{<?php
+
+use \lithium\data\Connections;
+
+Connections::add('default', 'Doctrine', array(
+	'driver' => 'pdo_mysql',
+	'host' => 'localhost',
+	'user' => 'root',
+	'password' => 'secret',
+	'dbname' => 'lithium'
+));
+
+?>}}}
+
+By default, your Doctrine proxy directory will be set to your application's
+`extensions/proxies` directory and your proxy namespace will be set to
+`\app\extensions\proxies`. To gain control over these configurations, you can
+get an instance to the `Doctrine\ORM\Configuration` class:
+{{{<?php
+
+use \lithium\data\Connections;
+
+Connections::add('default', 'Doctrine', array(
+	'driver' => 'pdo_mysql',
+	'host' => 'localhost',
+	'user' => 'root',
+	'password' => 'secret',
+	'dbname' => 'lithium',
+	'config' => function($config) {
+		// $config is the Doctrine\ORM\Configuration instance that gets passed
+		// to the soon-to-be created Doctrine\ORM\EntityManager.
+		$config->setProxyDir('/path/to/proxies');
+		$config->setProxyNamespace('\namespace\for\proxies');
+		return $config;
+	}
+));
+
+?>}}}
+
+**Useful information:**
+
+- [Doctrine EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)

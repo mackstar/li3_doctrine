@@ -6,10 +6,16 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-use \lithium\core\Libraries;
+use \lithium\data\Connections;
 
-Libraries::add('Doctrine', array(
-	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine'
-));
+/**
+ * Entity manager
+ */
+$em = Connections::get(LI3_DOCTRINE_CLI_CONNECTION)->entityManager();
+
+/**
+ * Arguments
+ */
+$args = array('class-dir' => LITHIUM_APP_PATH . '/models');
 
 ?>

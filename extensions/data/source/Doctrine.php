@@ -8,8 +8,8 @@
 
 namespace li3_doctrine\extensions\data\source;
 
-use \Doctrine_Manager;
-use \ReflectionProperty;
+use \Doctrine\ORM\EntityManager;
+use \Doctrine\ORM\Configuration;
 
 /**
  * This source introduces support for the Doctrine ORM into Lithium.
@@ -17,30 +17,66 @@ use \ReflectionProperty;
 class Doctrine extends \lithium\data\Source {
 
 	/**
-	 * Holds a ReflectionProperty instance of the
-	 * `Doctrine_Connection::$isConnected` property because its visibiliy is set
-	 * to protected.
+	 * `Doctrine\ORM\EntityManager` instance tied to this connection.
 	 *
 	 * @var object
 	 */
-	protected $_isConnectedProperty;
+	protected $_entityManager;
 
+	/**
+	 * Doctrine connection options.
+	 *
+	 * @var array
+	 */
+	protected $_doctrineOptions = array('config' => null);
+
+	/**
+	 * Initialize Doctrine source.
+	 *
+	 * @param array $config
+	 */
 	public function __construct($config = array()) {
-		$defaults = array(
-			'connect' => null
-		);
-		parent::__construct((array)$config + $defaults);
+		$this->_doctrineOptions += $config;
+		$config = array();
+		parent::__construct($config);
 	}
 
+	/**
+	 * Perform additional initialization.
+	 */
 	protected function _init() {
-		$manager = Doctrine_Manager::getInstance();
-		$this->_connection = $manager->connection($this->_config['connect']);
+		$bootstrap = $this->_doctrineOptions['config'] ?: function($config) {
+			$config->setProxyDir(LITHIUM_APP_PATH . '/extensions/proxies');
+			$config->setProxyNamespace('\app\extensions\proxies');
+			return $config;
+		};
 
-		$adapter = get_class($this->_connection);
-		$this->_isConnectedProperty = new ReflectionProperty($adapter, 'isConnected');
-		$this->_isConnectedProperty->setAccessible(true);
+		$config = new Configuration();
+		$config = $bootstrap($config);
+		unset($this->_doctrineOptions['config']);
+
+		$this->_entityManager = EntityManager::create($this->_doctrineOptions, $config);
 
 		parent::_init();
+	}
+
+	/**
+	 * Get `Doctrine\ORM\EntityManager` instance for this connection.
+	 *
+	 * @return object
+	 */
+	public function entityManager() {
+		return $this->_entityManager;
+	}
+
+	/**
+	 * Determine Doctrine connection state.
+	 *
+	 * @return boolean
+	 */
+	protected function _isConnected() {
+		$connection = $this->_entityManager->getConnection();
+		return $connection->isConnected();
 	}
 
 	/**
@@ -66,41 +102,57 @@ class Doctrine extends \lithium\data\Source {
 		return $this->_isConnected();
 	}
 
+	/**
+	 * Instruct EntityManager's Connection to establish connection.
+	 */
 	public function connect() {
-		$this->_connection->connect();
+		$connection = $this->_entityManager->getConnection();
+		return $connection->connect();
 	}
 
+	/**
+	 * Close connection.
+	 *
+	 * @return boolean False if not connected, true if disconnected.
+	 */
 	public function disconnect() {
-
+		$connection = $this->_entityManager->getConnection();
+		if (!$this->_isConnected()) {
+			return false;
+		}
+		$connection->close();
+		return true;
 	}
 
-	public function entities($class = null) {
+	/**
+	 * Not implemented
+	 */
+	public function entities($class = null) {}
 
-	}
+	/**
+	 * Not implemented
+	 */
+	public function describe($entity, $meta = array()) {}
 
-	public function describe($entity, $meta = array()) {
+	/**
+	 * Not implemented
+	 */
+	public function create($record, $options) {}
 
-	}
+	/**
+	 * Not implemented
+	 */
+	public function read($query, $options) {}
 
-	public function create($record, $options) {
+	/**
+	 * Not implemented
+	 */
+	public function update($query, $options) {}
 
-	}
-
-	public function read($query, $options) {
-
-	}
-
-	public function update($query, $options) {
-
-	}
-
-	public function delete($query, $options) {
-
-	}
-
-	protected function _isConnected() {
-		return $this->_isConnectedProperty->getValue($this->_connection);
-	}
+	/**
+	 * Not implemented
+	 */
+	public function delete($query, $options) {}
 
 }
 
