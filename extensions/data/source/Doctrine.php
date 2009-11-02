@@ -36,8 +36,13 @@ class Doctrine extends \lithium\data\Source {
 	 * @param array $config
 	 */
 	public function __construct($config = array()) {
+		$adapter = null;
+		if (isset($config['adapter'])) {
+			$adapter = $config['adapter'];
+			unset($config['adapter']);
+		}
 		$this->_doctrineOptions += $config;
-		$config = array();
+		$config = array('adapter' => $adapter);
 		parent::__construct($config);
 	}
 
