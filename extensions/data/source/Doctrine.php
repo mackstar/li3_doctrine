@@ -116,10 +116,10 @@ class Doctrine extends \lithium\data\Source {
 	 * @return boolean False if not connected, true if disconnected.
 	 */
 	public function disconnect() {
-		$connection = $this->_entityManager->getConnection();
 		if (!$this->_isConnected()) {
 			return false;
 		}
+		$connection = $this->_entityManager->getConnection();
 		$connection->close();
 		return true;
 	}
