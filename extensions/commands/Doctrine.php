@@ -14,20 +14,22 @@ use \Doctrine\ORM\Tools\Cli;
 use \ReflectionProperty;
 
 /**
- * The Li3 Doctrine command handles transparently setting up the models
- * directory and other configuration values automatically for you based on your
+ * The Doctrine command handles transparently setting up the models directory
+ * and other configuration values automatically for you based on your
  * application paths.
  *
  * This command will allow you to choose a connection source to use for the
  * Doctrine command you are about to issue. You can choose a connection by
  * passing the `--connection=<name>` option likeso: {{{
- * li3 doctrine --connection=test <doctrine_command> ...
+ * li3 doctrine <doctrine_command ...> --connection=test
  * }}}
  * By default, the `default` connection will be used.
  *
  * To supply a custom config to the Doctrine Cli, you can do it like this: {{{
- * li3 doctrine --config=/path/to/my/config.php <doctrine_command> ...
+ * li3 doctrine <doctrine_command ...> --config=/path/to/my/config.php
  * }}}
+ * Note that `--option` arguments must be placed at the end of the arguments
+ * list to work correctly.
  *
  * Pretty much every argument passed is going to be handed off to Doctrine for
  * internal processing. This command merely acts as a convience proxy between

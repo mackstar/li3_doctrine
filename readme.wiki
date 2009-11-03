@@ -58,4 +58,4 @@ Connections::add('default', 'Doctrine', array(
 
 **Useful information:**
 
-- [Doctrine EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)
+- [Read more about EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)
