@@ -12,6 +12,7 @@ use \lithium\data\Connections;
 use \lithium\util\Inflector;
 use \Doctrine\ORM\Tools\Cli;
 use \ReflectionProperty;
+use \ReflectionClass;
 
 /**
  * The Li3 Doctrine command handles transparently setting up the models
@@ -34,6 +35,13 @@ use \ReflectionProperty;
  * your Lithium application and your Doctrine models.
  */
 class Doctrine extends \lithium\console\Command {
+
+	/**
+	 * Path to Doctrine cli config file
+	 *
+	 * @var string
+	 */
+	public $config;
 
 	/**
 	 * Connection name
@@ -84,8 +92,18 @@ class Doctrine extends \lithium\console\Command {
 		$args[0] = str_replace('_', '-', Inflector::underscore($args[0]));
 
 		// Add default config path if none specified
-		if (preg_grep('/^--config=/', $args) !== 0) {
-			array_unshift($args, '--config=' . dirname(dirname(dirname(__FILE__))) . '/config/doctrine.php');
+		if (!$this->config) {
+			$this->config = dirname(dirname(dirname(__FILE__))) . '/config/doctrine.php';
+		}
+
+		// Delegate any unknown properties to Doctrine, preformatted
+		$skip = array('request', 'response');
+		foreach ($this as $property => $value) {
+			if (in_array($property, $skip) || $property[0] === '_') {
+				continue;
+			}
+			$property = str_replace('_', '-', Inflector::underscore($property));
+			$args[] = '--' . $property . '=' . $value;
 		}
 
 		$args = array_merge(array(__FILE__), $args);
