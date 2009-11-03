@@ -12,7 +12,6 @@ use \lithium\data\Connections;
 use \lithium\util\Inflector;
 use \Doctrine\ORM\Tools\Cli;
 use \ReflectionProperty;
-use \ReflectionClass;
 
 /**
  * The Li3 Doctrine command handles transparently setting up the models
