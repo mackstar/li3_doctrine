@@ -50,14 +50,15 @@ class Doctrine extends \lithium\data\Source {
 	 * Perform additional initialization.
 	 */
 	protected function _init() {
-		$bootstrap = $this->_doctrineOptions['config'] ?: function($config) {
+		$configCallback = $this->_doctrineOptions['config'] ?: false;
+		$configure = function($config) use ($configCallback) {
 			$config->setProxyDir(LITHIUM_APP_PATH . '/models/proxies');
 			$config->setProxyNamespace('app\models\proxies');
-			return $config;
+			return $configCallback ? $configCallback($config) : $config;
 		};
 
 		$config = new Configuration();
-		$config = $bootstrap($config);
+		$config = $configure($config);
 		unset($this->_doctrineOptions['config']);
 
 		$this->_entityManager = EntityManager::create($this->_doctrineOptions, $config);
