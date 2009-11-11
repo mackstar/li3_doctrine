@@ -9,7 +9,10 @@
 namespace li3_doctrine\extensions\data;
 
 /**
+ * The li3_doctrine base model for Doctrine 2 entities.
  *
+ * The base model inherits from ActiveEntity to enable your models with more
+ * traditional ActiveRecord behavior.
  */
 abstract class Model extends \DoctrineExtensions\ActiveEntity {
 
@@ -55,7 +58,9 @@ abstract class Model extends \DoctrineExtensions\ActiveEntity {
 	}
 
 	/**
+	 * Get instance of model for use in static context.
 	 *
+	 * @return object Model instance for use in static context
 	 */
 	protected static function &_instance() {
 		$class = get_called_class();
