@@ -51,8 +51,8 @@ class Doctrine extends \lithium\data\Source {
 	 */
 	protected function _init() {
 		$bootstrap = $this->_doctrineOptions['config'] ?: function($config) {
-			$config->setProxyDir(LITHIUM_APP_PATH . '/extensions/proxies');
-			$config->setProxyNamespace('\app\extensions\proxies');
+			$config->setProxyDir(LITHIUM_APP_PATH . '/models/proxies');
+			$config->setProxyNamespace('app\models\proxies');
 			return $config;
 		};
 
