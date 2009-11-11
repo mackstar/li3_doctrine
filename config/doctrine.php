@@ -16,6 +16,6 @@ $em = Connections::get(LI3_DOCTRINE_CLI_CONNECTION)->entityManager();
 /**
  * Arguments
  */
-$args = array('class-dir' => LITHIUM_APP_PATH . '/models');
+$globalArguments = array('class-dir' => LITHIUM_APP_PATH . '/models');
 
 ?>
