@@ -20,7 +20,7 @@ class DoctrineTest extends \lithium\test\Unit {
 	 *
 	 * @var array
 	 */
-	public static $_classes = array(
+	protected $_classes = array(
 		'source' => '\li3_doctrine\extensions\data\source\Doctrine'
 	);
 
@@ -40,13 +40,16 @@ class DoctrineTest extends \lithium\test\Unit {
 	 */
 	public function testConnection() {
 		Connections::add('li3_doctrine_test', 'Doctrine', array(
-			'driver' => 'pdo_mysql'
+			'driver' => 'pdo_sqlite',
+			'path' => ':memory:'
 		));
 
 		$source = Connections::get('li3_doctrine_test');
-		$this->assertTrue($source instanceof static::$_classes['source']);
+		$result = $source instanceof $this->_classes['source'];
+		$this->assertTrue($result);
 
-		$this->assertTrue($source->isConnected());
+		$result = $source->isConnected();
+		$this->assertTrue($result);
 	}
 
 }
