@@ -8,9 +8,9 @@
 
 use \lithium\core\Libraries;
 
-Libraries::add('Doctrine', array(
+/*Libraries::add('Doctrine', array(
 	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine'
-));
+));*/
 
 Libraries::add('DoctrineExtensions', array(
 	'path' => dirname(dirname(__FILE__)) . '/libraries/activeentity/DoctrineExtensions'
