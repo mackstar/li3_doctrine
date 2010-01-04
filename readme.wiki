@@ -1,16 +1,19 @@
 #### Bootstrap
 
-To start using li3_doctrine, add the following line of code to your
-application's `config/bootstrap.php`:
+To start using li3_doctrine, you first have to import the doctrine ORM library
+into your lithium application, and then the li3_doctrine plugin.
+
+To do so, place the doctrine installation inside your `LITHIUM_LIBRARY_PATH`, 
+and also the `li3_doctrine` directory. Then, add the following lines of code 
+to your application's `config/bootstrap.php`:
+
 {{{
+Libraries::add('Doctrine', array(
+	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/DoctrineORM-2.0.0/Doctrine'
+));
+
 Libraries::add('plugin', array('li3_doctrine' => array('bootstrap' => true)));
 }}}
-For this to work, your `li3_doctrine` directory must be visible within your
-`LITHIUM_LIBRARY_PATH` or your application's `libraries` directory.
-
-`doctrine` will need to be in your `LITHIUM_LIBRARY_PATH`. If you would like to
-use a different path, edit `li3_doctrine/config/bootstrap.php` and change the
-path to match the location on your system.
 
 #### Making a connection
 
