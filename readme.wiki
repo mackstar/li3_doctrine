@@ -37,7 +37,9 @@ Connections::add('default', 'Doctrine', array(
 By default, your Doctrine proxy directory will be set to your application's
 `extensions/proxies` directory and your proxy namespace will be set to
 `\app\extensions\proxies`. To gain control over these configurations, you can
-get an instance to the `Doctrine\ORM\Configuration` class:
+get an instance to the `Doctrine\ORM\Configuration` class and change it
+accordingly:
+
 {{{<?php
 
 use \lithium\data\Connections;
