@@ -1,1 +1,66 @@
-# Work in progress
+## Work in progress
+=======
+#### Bootstrap
+
+To start using li3_doctrine, you first have to import the doctrine ORM library
+into your lithium application, and then the li3_doctrine plugin.
+
+To do so, place the doctrine installation inside your `LITHIUM_LIBRARY_PATH`, 
+and also the `li3_doctrine` directory. Then, add the following lines of code 
+to your application's `config/bootstrap.php`:
+
+{{{
+Libraries::add('Doctrine', array(
+	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/DoctrineORM-2.0.0/Doctrine'
+));
+
+Libraries::add('plugin', array('li3_doctrine' => array('bootstrap' => true)));
+}}}
+
+#### Making a connection
+
+Connecting to a Doctrine managed backend is very easy. You can do so using the
+built-in Connections class provided by Lithium. Try using the following for
+your application's `config/connections.php`:
+{{{<?php
+
+use \lithium\data\Connections;
+
+Connections::add('default', 'Doctrine', array(
+	'driver' => 'pdo_mysql',
+	'host' => 'localhost',
+	'user' => 'root',
+	'password' => 'secret',
+	'dbname' => 'lithium'
+));
+
+?>}}}
+
+By default, your Doctrine proxy directory will be set to your application's
+`extensions/proxies` directory and your proxy namespace will be set to
+`\app\extensions\proxies`. To gain control over these configurations, you can
+get an instance to the `Doctrine\ORM\Configuration` class:
+{{{<?php
+
+use \lithium\data\Connections;
+
+Connections::add('default', 'Doctrine', array(
+	'driver' => 'pdo_mysql',
+	'host' => 'localhost',
+	'user' => 'root',
+	'password' => 'secret',
+	'dbname' => 'lithium',
+	'config' => function($config) {
+		// $config is the Doctrine\ORM\Configuration instance that gets passed
+		// to the soon-to-be created Doctrine\ORM\EntityManager.
+		$config->setProxyDir('/path/to/proxies');
+		$config->setProxyNamespace('\namespace\for\proxies');
+		return $config;
+	}
+));
+
+?>}}}
+
+**Useful information:**
+
+- [Read more about EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)
