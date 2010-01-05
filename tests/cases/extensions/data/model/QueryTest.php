@@ -6,10 +6,12 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-use \lithium\core\Libraries;
+namespace li3_doctrine\tests\cases\extensions\data\model;
 
-Libraries::add('Doctrine', array(
-	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine'
-));
+/**
+ *
+ */
+class QueryTest extends \lithium\test\Unit {
+}
 
 ?>
