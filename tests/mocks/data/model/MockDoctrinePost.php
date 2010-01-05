@@ -6,10 +6,16 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-use \lithium\core\Libraries;
+namespace li3_doctrine\tests\mocks\data\model;
 
-Libraries::add('Doctrine', array(
-	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine'
-));
+/**
+ *
+ */
+class MockDoctrinePost extends \lithium\data\Model {
+
+	protected $_meta = array('connection' => 'doctrineTest');
+
+	protected $_schema = array();
+}
 
 ?>

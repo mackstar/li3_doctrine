@@ -9,49 +9,33 @@
 namespace li3_doctrine\tests\cases\extensions\data\source;
 
 use \lithium\data\Connections;
+use \li3_doctrine\tests\mocks\data\model\MockDoctrinePost;
 
 /**
- * Doctrine data source tests
+ * Doctrine data source tests.
  */
 class DoctrineTest extends \lithium\test\Unit {
 
-	/**
-	 * Class dependencies
-	 *
-	 * @var array
-	 */
-	protected $_classes = array(
-		'source' => '\li3_doctrine\extensions\data\source\Doctrine'
-	);
-
-	/**
-	 * Bootstrap Doctrine
-	 */
 	public function setUp() {
-		$plugin = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__))))));
-		$bootstrap = $plugin . '/config/bootstrap.php';
-		if (is_readable($bootstrap)) {
-			include $bootstrap;
+		if (!Connections::get('doctrineTest')) {
+			Connections::add('doctrineTest', 'Doctrine', array(
+				'driver' => 'pdo_sqlite',
+				'path' => ':memory:'
+			));
 		}
 	}
 
-	/**
-	 * Tests connections through `\lithium\data\Connections`
-	 */
-	public function testConnection() {
-		Connections::add('li3_doctrine_test', 'Doctrine', array(
-			'driver' => 'pdo_sqlite',
-			'path' => ':memory:'
-		));
-
-		$source = Connections::get('li3_doctrine_test');
-		$result = $source instanceof $this->_classes['source'];
-		$this->assertTrue($result);
-
-		$result = $source->isConnected();
-		$this->assertTrue($result);
+	public function testCreate() {
 	}
 
+	public function testRead() {
+	}
+
+	public function testUpdate() {
+	}
+
+	public function testDelete() {
+	}
 }
 
 ?>

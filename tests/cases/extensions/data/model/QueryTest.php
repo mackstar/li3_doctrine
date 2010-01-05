@@ -6,16 +6,12 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-use \lithium\data\Connections;
+namespace li3_doctrine\tests\cases\extensions\data\model;
 
 /**
- * Entity manager
+ *
  */
-$em = Connections::get(LI3_DOCTRINE_CLI_CONNECTION)->entityManager();
-
-/**
- * Arguments
- */
-$globalArguments = array('class-dir' => LITHIUM_APP_PATH . '/models');
+class QueryTest extends \lithium\test\Unit {
+}
 
 ?>
