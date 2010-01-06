@@ -15,7 +15,6 @@ use \li3_doctrine\tests\mocks\data\model\MockDoctrinePost;
  * Doctrine data source tests.
  */
 class DoctrineTest extends \lithium\test\Unit {
-
 	public function setUp() {
 		if (!Connections::get('doctrineTest')) {
 			Connections::add('doctrineTest', 'Doctrine', array(
@@ -23,12 +22,18 @@ class DoctrineTest extends \lithium\test\Unit {
 				'path' => ':memory:'
 			));
 		}
+
+		$this->post = new MockDoctrinePost();
 	}
 
 	public function testCreate() {
+		$post = $this->post->find('first', array(
+			'conditions' => array('Post.id' => 1)
+		));
 	}
 
 	public function testRead() {
+
 	}
 
 	public function testUpdate() {

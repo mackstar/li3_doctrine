@@ -12,7 +12,6 @@ namespace li3_doctrine\tests\mocks\data\model;
  *
  */
 class MockDoctrinePost extends \lithium\data\Model {
-
 	protected $_meta = array(
 		'source' => 'posts',
 		'key' => 'id',

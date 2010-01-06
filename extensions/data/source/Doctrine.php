@@ -19,7 +19,6 @@ use \Doctrine\ORM\Query;
  *
  */
 class Doctrine extends \lithium\data\Source {
-
 	/**
 	 * Entity manager.
 	 */
