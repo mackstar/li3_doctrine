@@ -8,8 +8,11 @@
 
 use \lithium\core\Libraries;
 
-Libraries::add('Doctrine', array(
-	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine'
-));
+$doctrine = Libraries::get('Doctrine');
+if (empty($doctirne)) {
+	Libraries::add('Doctrine', array(
+		'path' => LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine'
+	));
+}
 
 ?>
