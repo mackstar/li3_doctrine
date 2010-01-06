@@ -10,8 +10,10 @@ namespace li3_doctrine\extensions\data\source;
 
 use \li3_doctrine\extensions\doctrine\mapper\ModelDriver;
 use \Doctrine\Common\EventManager;
+use \Doctrine\Common\Cache\ArrayCache;
 use \Doctrine\ORM\Configuration;
 use \Doctrine\ORM\EntityManager;
+use \Doctrine\ORM\Query;
 
 /**
  *
@@ -47,18 +49,10 @@ class Doctrine extends \lithium\data\Source {
 
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
 		$schemaManager = $this->_em->getConnection()->getSchemaManager();
+		$configuration->setMetadataCacheImpl(new ArrayCache());
 		$configuration->setMetadataDriverImpl(new ModelDriver());
 
 		parent::__construct($config);
-	}
-
-	/**
-	 *
-	 */
-	public function configureClass($class) {
-		return array('classes' => array(
-			'query' => '\li3_doctrine\extensions\data\model\Query'
-		));
 	}
 
 	/**
@@ -88,6 +82,28 @@ class Doctrine extends \lithium\data\Source {
 	}
 
 	/**
+	 *
+	 */
+	public function isConnected($options = array()) {
+		$defaults = array('autoConnect' => false);
+		$options += $defaults;
+		$connected = $this->getEntityManager()->getConnection()->isConnected();
+
+		if (!$connected && $options['autoConnect']) {
+			$this->connect();
+			return $this->getEntityManager()->getConnection()->isConnected();
+		}
+		return $connected;
+	}
+
+	/**
+	 *
+	 */
+	public function getEntityManager() {
+		return $this->_em;
+	}
+
+	/**
 	 * Returns the list of tables in the currently-connected database.
 	 *
 	 * @param string $model The fully-name-spaced class name of the model object making the request.
@@ -95,6 +111,12 @@ class Doctrine extends \lithium\data\Source {
 	 * @filter This method can be filtered.
 	 */
 	public function entities($class = null) {
+	}
+
+	/**
+	 *
+	 */
+	public function result($type, $resource, $context) {
 	}
 
 	/**
@@ -130,23 +152,42 @@ class Doctrine extends \lithium\data\Source {
 	/**
 	 *
 	 */
-	public function getEntityManager() {
-		return $this->_em;
+	public function conditions($conditions, $query) {
+		return $conditions ?: array();
 	}
 
 	/**
 	 *
 	 */
-	public function isConnected($options = array()) {
-		$defaults = array('autoConnect' => false);
-		$options += $defaults;
-		$connected = $this->getEntityManager()->getConnection()->isConnected();
+	public function fields($fields, $query) {
+		return $fields = $fields ?: array();
+	}
 
-		if (!$connected && $options['autoConnect']) {
-			$this->connect();
-			return $this->getEntityManager()->getConnection()->isConnected();
-		}
-		return $connected;
+	/**
+	 *
+	 */
+	public function order($order, $query) {
+		return $order ?: array();
+	}
+
+	/**
+	 *
+	 */
+	public function limit($limit, $query) {
+		return $limit ?: array();
+	}
+
+	/**
+	 *
+	 */
+	public function name($name) {
+		return $name;
+	}
+
+	/**
+	 *
+	 */
+	public function columns($query, $resource = null, $context = null) {
 	}
 }
 
