@@ -132,7 +132,6 @@ class Doctrine extends \lithium\data\Source {
 		$columns = $this->_sm->listTableColumns($entity);
 		foreach($columns as $field => $column) {
 			$column['type'] = strtolower((string) $column['type']);
-			$column = array_intersect_key($column, array('type'=>true, 'unsigned'=>true, 'notnull'=>true));
 			$schema[$field] = $column;
 		}
 
