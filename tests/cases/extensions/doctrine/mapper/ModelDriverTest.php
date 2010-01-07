@@ -35,25 +35,27 @@ class ModelDriverTest extends \lithium\test\Unit {
 		unset($this->noSchemaPost);
 	}
 
-	public function testLoadMetadataForClass() {
+	public function testMetadata() {
 		$schema = array_keys($this->post->schema());
-
 		$meta = $this->post->connection()->getEntityManager()->getClassMetadata(get_class($this->post));
 		$this->assertTrue(!empty($meta));
 		$properties = $meta->getReflectionProperties();
 		$this->assertTrue(!empty($properties));
 		$result = array_keys($properties);
 		$this->assertEqual($result, $schema);
+	}
 
+	public function testMetadataNoSchema() {
 		$connection = Connections::get('doctrineTest', array('config'=>true));
-		if (strpos($connection['driver'], 'sqlite') === false) {
-			$meta = $this->noSchemaPost->connection()->getEntityManager()->getClassMetadata(get_class($this->noSchemaPost));
-			$this->assertTrue(!empty($meta));
-			$properties = $meta->getReflectionProperties();
-			$this->assertTrue(!empty($properties));
-			$result = array_keys($properties);
-			$this->assertEqual($result, $schema);
-		}
+		$this->skipIf(strpos($connection['driver'], 'sqlite') !== false, 'Non SQLite driver needed for this test');
+
+		$schema = array_keys($this->post->schema());
+		$meta = $this->noSchemaPost->connection()->getEntityManager()->getClassMetadata(get_class($this->noSchemaPost));
+		$this->assertTrue(!empty($meta));
+		$properties = $meta->getReflectionProperties();
+		$this->assertTrue(!empty($properties));
+		$result = array_keys($properties);
+		$this->assertEqual($result, $schema);
 	}
 }
 
