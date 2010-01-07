@@ -28,6 +28,7 @@ class ModelDriverTest extends \lithium\test\Unit {
 
 		$this->post = new MockDoctrinePost();
 		$this->noSchemaPost = new MockDoctrineNoSchemaPost();
+		$this->datasource = $this->post->connection();
 	}
 
 	public function tearDown() {
@@ -37,7 +38,7 @@ class ModelDriverTest extends \lithium\test\Unit {
 
 	public function testMetadata() {
 		$schema = array_keys($this->post->schema());
-		$meta = $this->post->connection()->getEntityManager()->getClassMetadata(get_class($this->post));
+		$meta = $this->datasource->getEntityManager()->getClassMetadata(get_class($this->post));
 		$this->assertTrue(!empty($meta));
 		$properties = $meta->getReflectionProperties();
 		$this->assertTrue(!empty($properties));
@@ -50,7 +51,7 @@ class ModelDriverTest extends \lithium\test\Unit {
 		$this->skipIf(strpos($connection['driver'], 'sqlite') !== false, 'Non SQLite driver needed for this test');
 
 		$schema = array_keys($this->post->schema());
-		$meta = $this->noSchemaPost->connection()->getEntityManager()->getClassMetadata(get_class($this->noSchemaPost));
+		$meta = $this->datasource->getEntityManager()->getClassMetadata(get_class($this->noSchemaPost));
 		$this->assertTrue(!empty($meta));
 		$properties = $meta->getReflectionProperties();
 		$this->assertTrue(!empty($properties));
@@ -59,7 +60,7 @@ class ModelDriverTest extends \lithium\test\Unit {
 	}
 
 	public function testEntities() {
-		$entities = $this->post->connection()->entities();
+		$entities = $this->datasource->entities();
 		$this->assertTrue(!empty($entities));
 		$this->assertTrue(in_array($this->post->meta('source'), $entities));
 	}
