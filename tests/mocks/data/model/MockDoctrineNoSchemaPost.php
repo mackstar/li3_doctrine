@@ -11,21 +11,12 @@ namespace li3_doctrine\tests\mocks\data\model;
 /**
  *
  */
-class MockDoctrinePost extends \lithium\data\Model {
+class MockDoctrineNoSchemaPost extends \lithium\data\Model {
 	protected $_meta = array(
 		'source' => 'posts',
 		'key' => 'id',
 		'connection' => 'doctrineTest'
 	);
-
-	protected $_schema = array(
-		'id' => array('type' => 'integer', 'unsigned' => true, 'notnull' => true),
-		'title' => array('type' => 'string', 'notnull' => true),
-		'body' => array('type' => 'text', 'notnull' => true),
-		'created' => array('type' => 'datetime'),
-		'modified' => array('type' => 'datetime')
-	);
-
 	public function connection() {
 		return $this->_connection();
 	}

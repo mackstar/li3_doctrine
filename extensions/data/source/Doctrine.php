@@ -25,6 +25,11 @@ class Doctrine extends \lithium\data\Source {
 	protected $_em;
 
 	/**
+	 * Schema manager
+	 */
+	protected $_sm;
+
+	/**
 	 *
 	 */
 	public function __construct($config = array()) {
@@ -50,7 +55,8 @@ class Doctrine extends \lithium\data\Source {
 		$configuration->setMetadataDriverImpl(new ModelDriver());
 
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
-		$this->_em->getConfiguration()->getMetadataDriverImpl()->setSchemaManager($this->_em->getConnection()->getSchemaManager());
+		$this->_sm = $this->_em->getConnection()->getSchemaManager();
+		$this->_em->getConfiguration()->getMetadataDriverImpl()->setSchemaManager($this->_sm);
 		parent::__construct($config);
 	}
 
@@ -122,6 +128,15 @@ class Doctrine extends \lithium\data\Source {
 	 *
 	 */
 	public function describe($entity, $meta = array()) {
+		$schema = array();
+		$columns = $this->_sm->listTableColumns($entity);
+		foreach($columns as $field => $column) {
+			$column['type'] = strtolower((string) $column['type']);
+			$column = array_intersect_key($column, array('type'=>true, 'unsigned'=>true, 'notnull'=>true));
+			$schema[$field] = $column;
+		}
+
+		return $schema;
 	}
 
 	/**

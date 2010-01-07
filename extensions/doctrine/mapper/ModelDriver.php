@@ -11,7 +11,6 @@ namespace li3_doctrine\extensions\doctrine\mapper;
 use \li3_doctrine\extensions\doctrine\mapper\reflection\SchemaReflection;
 use \lithium\data\Connections;
 use \Doctrine\ORM\Mapping\ClassMetadataInfo;
-use \Doctrine\ORM\Mapping\Driver\DatabaseDriver;
 use \Doctrine\ORM\Mapping\Driver\Driver;
 
 /**
@@ -19,7 +18,6 @@ use \Doctrine\ORM\Mapping\Driver\Driver;
  */
 class ModelDriver implements Driver {
 	protected $_sm;
-	protected $_driver;
 
 	public function getSchemaManager() {
 		return $this->_sm;
@@ -27,18 +25,6 @@ class ModelDriver implements Driver {
 
 	public function setSchemaManager(\Doctrine\DBAL\Schema\AbstractSchemaManager $schemaManager) {
 		$this->_sm = $schemaManager;
-	}
-
-	public function getDriver() {
-		if (!isset($this->_driver)) {
-			$this->setDriver(new DatabaseDriver($this->_sm));
-		}
-		return $this->_driver;
-	}
-
-
-	public function setDriver(Driver $driver) {
-		$this->_driver = $driver;
 	}
 
 	public function loadMetadataForClass($className, ClassMetadataInfo $metadata) {
@@ -58,7 +44,7 @@ class ModelDriver implements Driver {
 				'id' => $primary,
 				'fieldName' => $field
 			);
-			$metadata->mapField($mapping + (array)$column);
+			$metadata->mapField($mapping + (array) $column);
 		}
 	}
 
