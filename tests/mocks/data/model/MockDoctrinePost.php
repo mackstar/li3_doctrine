@@ -26,12 +26,6 @@ class MockDoctrinePost extends \lithium\data\Model {
 		'updated' => array('type' => 'datetime')
 	);
 
-	public $id;
-	public $title;
-	public $body;
-	public $created;
-	public $updated;
-
 	public function connection() {
 		return $this->_connection();
 	}

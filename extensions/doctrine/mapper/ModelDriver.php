@@ -8,6 +8,7 @@
 
 namespace li3_doctrine\extensions\doctrine\mapper;
 
+use \li3_doctrine\extensions\doctrine\mapper\reflection\SchemaReflection;
 use \lithium\data\Connections;
 use \Doctrine\ORM\Mapping\ClassMetadataInfo;
 use \Doctrine\ORM\Mapping\Driver\DatabaseDriver;
@@ -41,10 +42,17 @@ class ModelDriver implements Driver {
 	}
 
 	public function loadMetadataForClass($className, ClassMetadataInfo $metadata) {
+		if (!($metadata->reflClass instanceof SchemaReflection)) {
+			$metadata->reflClass = new SchemaReflection($metadata->getClassName());
+		}
+
 		$metadata->primaryTable['name'] = $className::meta('source');
 		$key = $className::meta('key');
 
-		foreach ((array)$className::schema() as $field => $column) {
+		$schema = (array) $className::schema();
+		$metadata->reflClass->setSchema($schema);
+
+		foreach ($schema as $field => $column) {
 			$primary = $field == $key;
 			$mapping = array(
 				'id' => $primary,

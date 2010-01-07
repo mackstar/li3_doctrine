@@ -27,8 +27,13 @@ class ModelDriverTest extends \lithium\test\Unit {
 	}
 
 	public function testLoadMetadataForClass() {
-		$r = $this->post->connection()->getEntityManager()->getClassMetadata(get_class($this->post));
-		//var_dump($r);
+		$meta = $this->post->connection()->getEntityManager()->getClassMetadata(get_class($this->post));
+		$this->assertTrue(!empty($meta));
+		$properties = $meta->getReflectionProperties();
+		$this->assertTrue(!empty($properties));
+		$result = array_keys($properties);
+		$expected = array_keys($this->post->schema());
+		$this->assertEqual($result, $expected);
 	}
 }
 
