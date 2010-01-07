@@ -56,7 +56,6 @@ class Doctrine extends \lithium\data\Source {
 
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
 		$this->_sm = $this->_em->getConnection()->getSchemaManager();
-		$this->_em->getConfiguration()->getMetadataDriverImpl()->setSchemaManager($this->_sm);
 		parent::__construct($config);
 	}
 
