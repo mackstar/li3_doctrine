@@ -115,6 +115,8 @@ class Doctrine extends \lithium\data\Source {
 	 * @filter This method can be filtered.
 	 */
 	public function entities($class = null) {
+		$tables = $this->_sm->listTables();
+		return $tables;
 	}
 
 	/**

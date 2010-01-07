@@ -57,6 +57,12 @@ class ModelDriverTest extends \lithium\test\Unit {
 		$result = array_keys($properties);
 		$this->assertEqual($result, $schema);
 	}
+
+	public function testEntities() {
+		$entities = $this->post->connection()->entities();
+		$this->assertTrue(!empty($entities));
+		$this->assertTrue(in_array($this->post->meta('source'), $entities));
+	}
 }
 
 ?>

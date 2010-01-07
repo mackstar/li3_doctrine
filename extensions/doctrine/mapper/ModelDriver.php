@@ -38,10 +38,6 @@ class ModelDriver implements Driver {
 		}
 	}
 
-	public function getAllClassNames() {
-		return array();
-	}
-
 	public function isTransient($class) {
 		return true;
 	}
