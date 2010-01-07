@@ -31,6 +31,10 @@ class MockDoctrinePost extends \lithium\data\Model {
 	public $body;
 	public $created;
 	public $updated;
+
+	public function connection() {
+		return $this->_connection();
+	}
 }
 
 ?>

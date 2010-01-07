@@ -11,11 +11,34 @@ namespace li3_doctrine\extensions\doctrine\mapper;
 use \lithium\data\Connections;
 use \Doctrine\ORM\Mapping\ClassMetadataInfo;
 use \Doctrine\ORM\Mapping\Driver\DatabaseDriver;
+use \Doctrine\ORM\Mapping\Driver\Driver;
 
 /**
  *
  */
-class ModelDriver implements \Doctrine\ORM\Mapping\Driver\Driver {
+class ModelDriver implements Driver {
+	protected $_sm;
+	protected $_driver;
+
+	public function getSchemaManager() {
+		return $this->_sm;
+	}
+
+	public function setSchemaManager(\Doctrine\DBAL\Schema\AbstractSchemaManager $schemaManager) {
+		$this->_sm = $schemaManager;
+	}
+
+	public function getDriver() {
+		if (!isset($this->_driver)) {
+			$this->setDriver(new DatabaseDriver($this->_sm));
+		}
+		return $this->_driver;
+	}
+
+
+	public function setDriver(Driver $driver) {
+		$this->_driver = $driver;
+	}
 
 	public function loadMetadataForClass($className, ClassMetadataInfo $metadata) {
 		$metadata->primaryTable['name'] = $className::meta('source');
@@ -37,6 +60,11 @@ class ModelDriver implements \Doctrine\ORM\Mapping\Driver\Driver {
 
 	public function isTransient($class) {
 		return true;
+	}
+
+	public function preload() {
+		$tables = array();
+		return $tables;
 	}
 }
 

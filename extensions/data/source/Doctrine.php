@@ -46,11 +46,11 @@ class Doctrine extends \lithium\data\Source {
 			$eventManager = new EventManager();
 		}
 
-		$this->_em = EntityManager::create($config, $configuration, $eventManager);
-		$schemaManager = $this->_em->getConnection()->getSchemaManager();
 		$configuration->setMetadataCacheImpl(new ArrayCache());
 		$configuration->setMetadataDriverImpl(new ModelDriver());
 
+		$this->_em = EntityManager::create($config, $configuration, $eventManager);
+		$this->_em->getConfiguration()->getMetadataDriverImpl()->setSchemaManager($this->_em->getConnection()->getSchemaManager());
 		parent::__construct($config);
 	}
 
