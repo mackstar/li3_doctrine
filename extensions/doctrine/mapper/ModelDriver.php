@@ -17,16 +17,6 @@ use \Doctrine\ORM\Mapping\Driver\Driver;
  *
  */
 class ModelDriver implements Driver {
-	protected $_sm;
-
-	public function getSchemaManager() {
-		return $this->_sm;
-	}
-
-	public function setSchemaManager(\Doctrine\DBAL\Schema\AbstractSchemaManager $schemaManager) {
-		$this->_sm = $schemaManager;
-	}
-
 	public function loadMetadataForClass($className, ClassMetadataInfo $metadata) {
 		if (!($metadata->reflClass instanceof SchemaReflection)) {
 			$metadata->reflClass = new SchemaReflection($metadata->getClassName());
