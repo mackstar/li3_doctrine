@@ -245,11 +245,10 @@ class Doctrine extends \lithium\data\Source {
 						$key = $options['alias'] . '.' . $key;
 					}
 					if (is_array($value)) {
-						$values = $value;
-						foreach($values as $iv => $value) {
-							$values[$iv] = $expr->literal($value);
+						foreach($value as $iv => $ivalue) {
+							$value[$iv] = $expr->literal($ivalue);
 						}
-						$query->andWhere($expr->in($key, $values));
+						$query->andWhere($expr->in($key, $value));
 					} else {
 						$query->andWhere($expr->eq($key, $expr->literal($value)));
 					}

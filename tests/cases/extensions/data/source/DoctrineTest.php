@@ -45,7 +45,6 @@ class DoctrineTest extends \lithium\test\Unit {
 		$result = $doctrine->parseConditions(array(
 			'id' => 1
 		), compact('alias'));
-		$expected = 'MockDoctrinePost.id=1';
 		$this->assertPattern('/^MockDoctrinePost\.id\s*=\s*1$/i', $result);
 
 		$result = $doctrine->parseConditions(array(
@@ -91,6 +90,11 @@ class DoctrineTest extends \lithium\test\Unit {
 			'(MockDoctrinePost.title\s*=\s*\'li3\')',
 			'\s*)'
 		)), $result);
+
+		$result = $doctrine->parseConditions(array(
+			'id' => array(1, 2)
+		), compact('alias'));
+		$this->assertPattern('/^MockDoctrinePost\.id\s+IN\s*\(\s*1\s*,\s*2\s*\)$/i', $result);
 	}
 
 	public function _testCreate() {
