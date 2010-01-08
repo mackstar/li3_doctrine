@@ -108,6 +108,13 @@ class Doctrine extends \lithium\data\Source {
 	}
 
 	/**
+	 *
+	 */
+	public function getSchemaManager() {
+		return $this->_sm;
+	}
+
+	/**
 	 * Returns the list of tables in the currently-connected database.
 	 *
 	 * @param string $model The fully-name-spaced class name of the model object making the request.
@@ -115,7 +122,7 @@ class Doctrine extends \lithium\data\Source {
 	 * @filter This method can be filtered.
 	 */
 	public function entities($class = null) {
-		$tables = $this->_sm->listTables();
+		$tables = $this->getSchemaManager()->listTables();
 		return $tables;
 	}
 
@@ -130,7 +137,7 @@ class Doctrine extends \lithium\data\Source {
 	 */
 	public function describe($entity, $meta = array()) {
 		$schema = array();
-		$columns = $this->_sm->listTableColumns($entity);
+		$columns = $this->getSchemaManager()->listTableColumns($entity);
 		foreach($columns as $field => $column) {
 			$column['type'] = strtolower((string) $column['type']);
 			$schema[$field] = $column;
@@ -150,7 +157,15 @@ class Doctrine extends \lithium\data\Source {
 	 * @return RecordSet
 	 */
 	public function read($query, $options) {
-		var_dump($query);
+		$alias = $options['model']::meta('name');
+		$where = $this->_parseConditions($query->conditions(), compact('alias'));
+		$query = $this->getEntityManager()->createQueryBuilder();
+		if (!empty($where)) {
+			$query->add('where', $where);
+		}
+		var_dump($query->getQuery());
+		//$query->add('where', $expression);
+		//var_dump($query, $query->getQuery(), $expression);
 	}
 
 	/**
@@ -204,6 +219,47 @@ class Doctrine extends \lithium\data\Source {
 	 *
 	 */
 	public function columns($query, $resource = null, $context = null) {
+	}
+
+	protected function _parseConditions($conditions, $options) {
+		$query = $this->getEntityManager()->createQueryBuilder();
+		if (empty($conditions)) {
+			return null;
+		} else if (is_string($conditions)) {
+			$query->$clause($conditions);
+		} else {
+			$expr = $query->expr();
+			foreach($conditions as $key => $value) {
+				if (is_string($key) && in_array(strtolower($key), array('or'))) {
+					$clause = strtolower($key);
+					$innerQuery = $this->getEntityManager()->createQueryBuilder();
+					foreach((array) $value as $innerKey => $piece) {
+						if (is_string($innerKey)) {
+							$piece = array($innerKey => $piece);
+						}
+						$innerQuery->{$clause.'Where'}($this->_parseConditions($piece, $options));
+					}
+					$query->andWhere($innerQuery->getDqlPart('where'));
+				} else if (is_string($key)) {
+					if (strpos($key, '.') === false) {
+						$key = $options['alias'] . '.' . $key;
+					}
+					if (is_array($value)) {
+						$values = $value;
+						foreach($values as $iv => $value) {
+							$values[$iv] = $expr->literal($value);
+						}
+						$query->andWhere($expr->in($key, $values));
+					} else {
+						$query->andWhere($expr->eq($key, $expr->literal($value)));
+					}
+				} else {
+					$query->andWhere($this->_parseConditions($value, $options));
+				}
+			}
+		}
+
+		return $query->getDqlPart('where');
 	}
 }
 
