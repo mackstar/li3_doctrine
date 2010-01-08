@@ -18,7 +18,7 @@ use \Doctrine\ORM\Query;
 /**
  *
  */
-class Doctrine extends \lithium\data\Source {
+class Doctrine extends \lithium\data\source\Database {
 	/**
 	 * Entity manager.
 	 */
@@ -126,11 +126,20 @@ class Doctrine extends \lithium\data\Source {
 		return $tables;
 	}
 
-	/**
-	 *
-	 */
-	public function result($type, $resource, $context) {
+	public function encoding($encoding = null) {
 	}
+
+	public function result($type, $resource, $context) {
+		if ($type == 'next') {
+			foreach($resource as $i => $object) {
+				$context->offsetSet($i, $object);
+			}
+		}
+	}
+
+	public function error() {
+	}
+
 
 	/**
 	 *
@@ -160,19 +169,26 @@ class Doctrine extends \lithium\data\Source {
 		$query = $query->export($this);
 		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
 			extract($params);
-			foreach(array('alias'=>'name', 'source'=>'source') as $option => $parameter) {
-				if (empty($options[$option])) {
-					$options[$option] = $options['model']::meta($parameter);
+			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
+			$doctrineQuery->from($options['model'], $options['model']::meta('name'));
+
+			foreach($query['fields'] as $scope => $fields) {
+				foreach($fields as $field) {
+					$doctrineQuery->addSelect($scope::meta('name') . '.' . $field);
 				}
 			}
-			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
-			$doctrineQuery->from($options['source'], $options['alias']);
+
 			if (isset($query['conditions'])) {
 				$doctrineQuery->add('where', $query['conditions']);
 			}
 			return $doctrineQuery;
 		});
-		var_dump($doctrineQuery->getDql());
+
+		$query = $doctrineQuery->getQuery();
+		$query->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
+
+		$result = $query->getResult();
+		return $result;
 	}
 
 	/**
@@ -199,7 +215,7 @@ class Doctrine extends \lithium\data\Source {
 	 *
 	 */
 	public function fields($fields, $query) {
-		return $fields = $fields ?: array();
+		return $this->columns($query);
 	}
 
 	/**
@@ -214,19 +230,6 @@ class Doctrine extends \lithium\data\Source {
 	 */
 	public function limit($limit, $query) {
 		return $limit ?: array();
-	}
-
-	/**
-	 *
-	 */
-	public function name($name) {
-		return $name;
-	}
-
-	/**
-	 *
-	 */
-	public function columns($query, $resource = null, $context = null) {
 	}
 
 	protected function _parseConditions($conditions, $options) {

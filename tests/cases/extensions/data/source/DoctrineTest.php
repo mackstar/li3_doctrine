@@ -100,10 +100,18 @@ class DoctrineTest extends \lithium\test\Unit {
 	public function testCreate() {
 	}
 
-	public function _testRead() {
-		$post = $this->post->find('first', array(
+	public function testRead() {
+		$result = $this->post->find('first', array(
 			'conditions' => array('MockDoctrinePost.id' => 1)
 		));
+		$expected = array(
+			'id' => 1,
+			'title' => 'First post',
+			'body' => 'This is the body for the first post',
+			'created' => new \DateTime('2010-01-02 17:06:04'),
+			'modified' => new \DateTime('2010-01-02 17:06:04')
+		);
+		$this->assertEqual($this->_toArray($result), $expected);
 	}
 
 	public function testUpdate() {
@@ -125,6 +133,16 @@ class DoctrineTest extends \lithium\test\Unit {
 		$sql = strtr($sql, $replacements);
 		return '/^' . $sql . '$/i';
 	}
+
+	protected function _toArray($model) {
+		$schema = $this->post->schema();
+		$row = array();
+		foreach(array_keys($schema) as $field) {
+			$row[$field] = $model->$field;
+		}
+		return $row;
+	}
+
 }
 
 ?>
