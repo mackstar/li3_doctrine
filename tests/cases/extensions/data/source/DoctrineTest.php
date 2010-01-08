@@ -11,6 +11,17 @@ namespace li3_doctrine\tests\cases\extensions\data\source;
 use \lithium\data\Connections;
 use \li3_doctrine\tests\mocks\data\model\MockDoctrinePost;
 
+class TestDoctrine extends \li3_doctrine\extensions\data\source\Doctrine {
+	public function parseConditions() {
+		$query = call_user_func_array(array($this, '_parseConditions'), func_get_args());
+		if (!empty($query)) {
+			$query = $this->getEntityManager()->createQueryBuilder()->add('where', $query)->getDql();
+			$query = trim(preg_replace('/^SELECT\s+WHERE\s+/i', '', $query));
+		}
+		return $query;
+	}
+}
+
 /**
  * Doctrine data source tests.
  */
@@ -29,13 +40,14 @@ class DoctrineTest extends \lithium\test\Unit {
 
 	public function testParseConditions() {
 		$alias = $this->post->meta('name');
+		$doctrine = new TestDoctrine(Connections::get($this->_connection, array('config'=>true)));
 
-		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
+		$result = $this->_extractConditions($doctrine->parseConditions(array(
 			'id' => 1
 		), compact('alias')));
 		$this->assertPattern('/^MockDoctrinePost\.id\s*=\s*1$/i', $result);
 
-		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
+		$result = $this->_extractConditions($doctrine->parseConditions(array(
 			'id' => 1,
 			'title' => 'lithium'
 		), compact('alias')));
@@ -45,7 +57,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			'(MockDoctrinePost.title\s*=\s*\'lithium\')'
 		)), $result);
 
-		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
+		$result = $this->_extractConditions($doctrine->parseConditions(array(
 			'id' => 1,
 			'or' => array(
 				'title' => 'lithium',
@@ -62,7 +74,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			'\s*)'
 		)), $result);
 
-		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
+		$result = $this->_extractConditions($doctrine->parseConditions(array(
 			'id' => 1,
 			'or' => array(
 				'title' => 'lithium',
@@ -79,7 +91,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			'\s*)'
 		)), $result);
 
-		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
+		$result = $this->_extractConditions($doctrine->parseConditions(array(
 			'id' => array(1, 2)
 		), compact('alias')));
 		$this->assertPattern('/^MockDoctrinePost\.id\s+IN\s*\(\s*1\s*,\s*2\s*\)$/i', $result);
