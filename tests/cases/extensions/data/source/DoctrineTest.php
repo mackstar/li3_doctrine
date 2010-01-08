@@ -135,7 +135,7 @@ class DoctrineTest extends \lithium\test\Unit {
 	}
 
 	protected function _toArray($model) {
-		$schema = $this->post->schema();
+		$schema = $model->schema();
 		$row = array();
 		foreach(array_keys($schema) as $field) {
 			$row[$field] = $model->$field;
