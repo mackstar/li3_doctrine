@@ -101,7 +101,7 @@ class DoctrineTest extends \lithium\test\Unit {
 	}
 
 	public function testRead() {
-		$result = $this->post->find('first', array(
+		$result = MockDoctrinePost::find('first', array(
 			'conditions' => array('MockDoctrinePost.id' => 1)
 		));
 		$expected = array(

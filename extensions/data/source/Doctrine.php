@@ -186,9 +186,7 @@ class Doctrine extends \lithium\data\source\Database {
 
 		$query = $doctrineQuery->getQuery();
 		$query->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
-
-		$result = $query->getResult();
-		return $result;
+		return $query->getResult();
 	}
 
 	/**
