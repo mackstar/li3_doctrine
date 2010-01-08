@@ -161,14 +161,14 @@ class Doctrine extends \lithium\data\Source {
 			$options['alias'] = $options['model']::meta('name');
 		}
 		$where = $this->_parseConditions($query->conditions(), $options);
-		$query = $this->_filter(__METHOD__, compact('query', 'options', 'where'), function($self, $params, $chain) {
+		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options', 'where'), function($self, $params, $chain) {
 			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
 			if (isset($params['where'])) {
 				$doctrineQuery->add('where', $params['where']);
 			}
 			return $doctrineQuery;
 		});
-		var_dump($query->getDql());
+		var_dump($doctrineQuery->getDql());
 	}
 
 	/**
