@@ -157,15 +157,18 @@ class Doctrine extends \lithium\data\Source {
 	 * @return RecordSet
 	 */
 	public function read($query, $options) {
-		$alias = $options['model']::meta('name');
-		$where = $this->_parseConditions($query->conditions(), compact('alias'));
-		$query = $this->getEntityManager()->createQueryBuilder();
-		if (!empty($where)) {
-			$query->add('where', $where);
+		if (empty($options['alias'])) {
+			$options['alias'] = $options['model']::meta('name');
 		}
-		var_dump($query->getQuery());
-		//$query->add('where', $expression);
-		//var_dump($query, $query->getQuery(), $expression);
+		$where = $this->_parseConditions($query->conditions(), $options);
+		$query = $this->_filter(__METHOD__, compact('query', 'options', 'where'), function($self, $params, $chain) {
+			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
+			if (isset($params['where'])) {
+				$doctrineQuery->add('where', $params['where']);
+			}
+			return $doctrineQuery;
+		});
+		var_dump($query->getDql());
 	}
 
 	/**

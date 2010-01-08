@@ -38,7 +38,7 @@ class DoctrineTest extends \lithium\test\Unit {
 		$this->post = new MockDoctrinePost();
 	}
 
-	public function testParseConditions() {
+	public function _testParseConditions() {
 		$alias = $this->post->meta('name');
 		$doctrine = new TestDoctrine(Connections::get($this->_connection, array('config'=>true)));
 
@@ -97,14 +97,13 @@ class DoctrineTest extends \lithium\test\Unit {
 		$this->assertPattern('/^MockDoctrinePost\.id\s+IN\s*\(\s*1\s*,\s*2\s*\)$/i', $result);
 	}
 
-	public function _testCreate() {
-		$post = $this->post->find('first', array(
-			'conditions' => array('Post.id' => 1, 'Post.published' => true, 'or' => array('id'=>4, 'id2'=>5))
-		));
+	public function testCreate() {
 	}
 
 	public function testRead() {
-
+		$post = $this->post->find('first', array(
+			'conditions' => array('MockDoctrinePost.id' => 1)
+		));
 	}
 
 	public function testUpdate() {
