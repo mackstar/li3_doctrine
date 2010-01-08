@@ -157,14 +157,15 @@ class Doctrine extends \lithium\data\Source {
 	 * @return RecordSet
 	 */
 	public function read($query, $options) {
-		if (empty($options['alias'])) {
-			$options['alias'] = $options['model']::meta('name');
-		}
-		$where = $this->_parseConditions($query->conditions(), $options);
-		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options', 'where'), function($self, $params, $chain) {
+		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
+			extract($params);
+			if (empty($options['alias'])) {
+				$options['alias'] = $options['model']::meta('name');
+			}
+			$where = $self->parseConditions($query->conditions(), $options);
 			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
-			if (isset($params['where'])) {
-				$doctrineQuery->add('where', $params['where']);
+			if (isset($where)) {
+				$doctrineQuery->add('where', $where);
 			}
 			return $doctrineQuery;
 		});
@@ -224,7 +225,7 @@ class Doctrine extends \lithium\data\Source {
 	public function columns($query, $resource = null, $context = null) {
 	}
 
-	protected function _parseConditions($conditions, $options) {
+	public function parseConditions($conditions, $options) {
 		$query = $this->getEntityManager()->createQueryBuilder();
 		if (empty($conditions)) {
 			return null;
@@ -240,7 +241,7 @@ class Doctrine extends \lithium\data\Source {
 						if (is_string($innerKey)) {
 							$piece = array($innerKey => $piece);
 						}
-						$innerQuery->{$clause.'Where'}($this->_parseConditions($piece, $options));
+						$innerQuery->{$clause.'Where'}($this->parseConditions($piece, $options));
 					}
 					$query->andWhere($innerQuery->getDqlPart('where'));
 				} else if (is_string($key)) {
@@ -256,7 +257,7 @@ class Doctrine extends \lithium\data\Source {
 						$query->andWhere($expr->eq($key, $expr->literal($value)));
 					}
 				} else {
-					$query->andWhere($this->_parseConditions($value, $options));
+					$query->andWhere($this->parseConditions($value, $options));
 				}
 			}
 		}

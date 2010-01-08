@@ -11,17 +11,6 @@ namespace li3_doctrine\tests\cases\extensions\data\source;
 use \lithium\data\Connections;
 use \li3_doctrine\tests\mocks\data\model\MockDoctrinePost;
 
-class TestDoctrine extends \li3_doctrine\extensions\data\source\Doctrine {
-	public function parseConditions() {
-		$query = call_user_func_array(array($this, '_parseConditions'), func_get_args());
-		if (!empty($query)) {
-			$query = $this->getEntityManager()->createQueryBuilder()->add('where', $query)->getDql();
-			$query = trim(preg_replace('/^SELECT\s+WHERE\s+/i', '', $query));
-		}
-		return $query;
-	}
-}
-
 /**
  * Doctrine data source tests.
  */
@@ -40,30 +29,29 @@ class DoctrineTest extends \lithium\test\Unit {
 
 	public function _testParseConditions() {
 		$alias = $this->post->meta('name');
-		$doctrine = new TestDoctrine(Connections::get($this->_connection, array('config'=>true)));
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
 			'id' => 1
-		), compact('alias'));
+		), compact('alias')));
 		$this->assertPattern('/^MockDoctrinePost\.id\s*=\s*1$/i', $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
 			'id' => 1,
 			'title' => 'lithium'
-		), compact('alias'));
+		), compact('alias')));
 		$this->assertPattern($this->_buildSqlRegex(array(
 			'(MockDoctrinePost.id\s*=\s*1)',
 			'\s+AND\s+',
 			'(MockDoctrinePost.title\s*=\s*\'lithium\')'
 		)), $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
 			'id' => 1,
 			'or' => array(
 				'title' => 'lithium',
 				'body' => 'li3'
 			)
-		), compact('alias'));
+		), compact('alias')));
 		$this->assertPattern($this->_buildSqlRegex(array(
 			'(MockDoctrinePost.id\s*=\s*1)',
 			'\s+AND\s+',
@@ -74,13 +62,13 @@ class DoctrineTest extends \lithium\test\Unit {
 			'\s*)'
 		)), $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
 			'id' => 1,
 			'or' => array(
 				'title' => 'lithium',
 				array('title' => 'li3')
 			)
-		), compact('alias'));
+		), compact('alias')));
 		$this->assertPattern($this->_buildSqlRegex(array(
 			'(MockDoctrinePost.id\s*=\s*1)',
 			'\s+AND\s+',
@@ -91,9 +79,9 @@ class DoctrineTest extends \lithium\test\Unit {
 			'\s*)'
 		)), $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
 			'id' => array(1, 2)
-		), compact('alias'));
+		), compact('alias')));
 		$this->assertPattern('/^MockDoctrinePost\.id\s+IN\s*\(\s*1\s*,\s*2\s*\)$/i', $result);
 	}
 
@@ -110,6 +98,15 @@ class DoctrineTest extends \lithium\test\Unit {
 	}
 
 	public function testDelete() {
+	}
+
+	protected function _extractConditions($query) {
+		$query = call_user_func_array(array($this, '_parseConditions'), func_get_args());
+		if (!empty($query)) {
+			$query = $this->getEntityManager()->createQueryBuilder()->add('where', $query)->getDql();
+			$query = trim(preg_replace('/^SELECT\s+WHERE\s+/i', '', $query));
+		}
+		return $query;
 	}
 
 	protected function _buildSqlRegex($sql) {
