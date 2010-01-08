@@ -52,11 +52,11 @@ class DoctrineTest extends \lithium\test\Unit {
 			'id' => 1,
 			'title' => 'lithium'
 		), compact('alias'));
-		$this->assertPattern('/^'. implode(array(
-			'\(MockDoctrinePost\.id\s*=\s*1\)',
+		$this->assertPattern($this->_buildSqlRegex(array(
+			'(MockDoctrinePost.id\s*=\s*1)',
 			'\s+AND\s+',
-			'\(MockDoctrinePost\.title\s*=\s*\'lithium\'\)'
-		)) . '$/i', $result);
+			'(MockDoctrinePost.title\s*=\s*\'lithium\')'
+		)), $result);
 
 		$result = $doctrine->parseConditions(array(
 			'id' => 1,
@@ -65,15 +65,15 @@ class DoctrineTest extends \lithium\test\Unit {
 				'body' => 'li3'
 			)
 		), compact('alias'));
-		$this->assertPattern('/^'. implode(array(
-			'\(MockDoctrinePost\.id\s*=\s*1\)',
+		$this->assertPattern($this->_buildSqlRegex(array(
+			'(MockDoctrinePost.id\s*=\s*1)',
 			'\s+AND\s+',
-			'\(\s*',
-			'\(MockDoctrinePost\.title\s*=\s*\'lithium\'\)',
+			'(\s*',
+			'(MockDoctrinePost.title\s*=\s*\'lithium\')',
 			'\s+OR\s+',
-			'\(MockDoctrinePost\.body\s*=\s*\'li3\'\)',
-			'\s*\)'
-		)) . '$/i', $result);
+			'(MockDoctrinePost.body\s*=\s*\'li3\')',
+			'\s*)'
+		)), $result);
 
 		$result = $doctrine->parseConditions(array(
 			'id' => 1,
@@ -82,15 +82,15 @@ class DoctrineTest extends \lithium\test\Unit {
 				array('title' => 'li3')
 			)
 		), compact('alias'));
-		$this->assertPattern('/^'. implode(array(
-			'\(MockDoctrinePost\.id\s*=\s*1\)',
+		$this->assertPattern($this->_buildSqlRegex(array(
+			'(MockDoctrinePost.id\s*=\s*1)',
 			'\s+AND\s+',
-			'\(\s*',
-			'\(MockDoctrinePost\.title\s*=\s*\'lithium\'\)',
+			'(\s*',
+			'(MockDoctrinePost.title\s*=\s*\'lithium\')',
 			'\s+OR\s+',
-			'\(MockDoctrinePost\.title\s*=\s*\'li3\'\)',
-			'\s*\)'
-		)) . '$/i', $result);
+			'(MockDoctrinePost.title\s*=\s*\'li3\')',
+			'\s*)'
+		)), $result);
 	}
 
 	public function _testCreate() {
@@ -107,6 +107,20 @@ class DoctrineTest extends \lithium\test\Unit {
 	}
 
 	public function testDelete() {
+	}
+
+	protected function _buildSqlRegex($sql) {
+		$replacements = array(
+			'(' => '\(',
+			')' => '\)',
+			'.' => '\.'
+		);
+		if (is_array($sql)) {
+			$sql = implode($sql);
+		}
+
+		$sql = strtr($sql, $replacements);
+		return '/^' . $sql . '$/i';
 	}
 }
 
