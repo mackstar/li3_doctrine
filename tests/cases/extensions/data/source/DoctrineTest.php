@@ -27,7 +27,7 @@ class DoctrineTest extends \lithium\test\Unit {
 		$this->post = new MockDoctrinePost();
 	}
 
-	public function _testParseConditions() {
+	public function testParseConditions() {
 		$alias = $this->post->meta('name');
 
 		$result = $this->_extractConditions($this->post->connection()->parseConditions(array(
@@ -88,7 +88,7 @@ class DoctrineTest extends \lithium\test\Unit {
 	public function testCreate() {
 	}
 
-	public function testRead() {
+	public function _testRead() {
 		$post = $this->post->find('first', array(
 			'conditions' => array('MockDoctrinePost.id' => 1)
 		));
@@ -101,9 +101,8 @@ class DoctrineTest extends \lithium\test\Unit {
 	}
 
 	protected function _extractConditions($query) {
-		$query = call_user_func_array(array($this, '_parseConditions'), func_get_args());
 		if (!empty($query)) {
-			$query = $this->getEntityManager()->createQueryBuilder()->add('where', $query)->getDql();
+			$query = $this->post->connection()->getEntityManager()->createQueryBuilder()->add('where', $query)->getDql();
 			$query = trim(preg_replace('/^SELECT\s+WHERE\s+/i', '', $query));
 		}
 		return $query;
