@@ -147,8 +147,10 @@ class Doctrine extends \lithium\data\Source {
 
 	/**
 	 *
+	 * @return RecordSet
 	 */
 	public function read($query, $options) {
+		var_dump($query);
 	}
 
 	/**
