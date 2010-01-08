@@ -9,7 +9,7 @@
 use \lithium\core\Libraries;
 
 $doctrine = Libraries::get('Doctrine');
-if (empty($doctirne)) {
+if (empty($doctrine)) {
 	Libraries::add('Doctrine', array(
 		'path' => LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine'
 	));
