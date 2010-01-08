@@ -34,12 +34,10 @@ class DoctrineTest extends \lithium\test\Unit {
 				'path' => ':memory:'
 			));
 		}
-
-		$this->post = new MockDoctrinePost();
 	}
 
 	public function testParseConditions() {
-		$alias = $this->post->meta('name');
+		$alias = MockDoctrinePost::meta('name');
 		$doctrine = new TestDoctrine(Connections::get($this->_connection, array('config'=>true)));
 
 		$result = $doctrine->parseConditions(array(
