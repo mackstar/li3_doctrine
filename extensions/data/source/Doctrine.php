@@ -18,7 +18,7 @@ use \Doctrine\ORM\Query;
 /**
  *
  */
-class Doctrine extends \lithium\data\Source {
+class Doctrine extends \lithium\data\source\Database {
 	/**
 	 * Entity manager.
 	 */
@@ -126,11 +126,20 @@ class Doctrine extends \lithium\data\Source {
 		return $tables;
 	}
 
-	/**
-	 *
-	 */
-	public function result($type, $resource, $context) {
+	public function encoding($encoding = null) {
 	}
+
+	public function result($type, $resource, $context) {
+		if ($type == 'next') {
+			foreach($resource as $i => $object) {
+				$context->offsetSet($i, $object);
+			}
+		}
+	}
+
+	public function error() {
+	}
+
 
 	/**
 	 *
@@ -157,19 +166,27 @@ class Doctrine extends \lithium\data\Source {
 	 * @return RecordSet
 	 */
 	public function read($query, $options) {
+		$query = $query->export($this);
 		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
 			extract($params);
-			if (empty($options['alias'])) {
-				$options['alias'] = $options['model']::meta('name');
-			}
-			$where = $self->parseConditions($query->conditions(), $options);
 			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
-			if (isset($where)) {
-				$doctrineQuery->add('where', $where);
+			$doctrineQuery->from($options['model'], $options['model']::meta('name'));
+
+			foreach($query['fields'] as $scope => $fields) {
+				foreach($fields as $field) {
+					$doctrineQuery->addSelect($scope::meta('name') . '.' . $field);
+				}
+			}
+
+			if (isset($query['conditions'])) {
+				$doctrineQuery->add('where', $query['conditions']);
 			}
 			return $doctrineQuery;
 		});
-		var_dump($doctrineQuery->getDql());
+
+		$query = $doctrineQuery->getQuery();
+		$query->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
+		return $query->getResult();
 	}
 
 	/**
@@ -188,14 +205,15 @@ class Doctrine extends \lithium\data\Source {
 	 *
 	 */
 	public function conditions($conditions, $query) {
-		return $conditions ?: array();
+		$model = $query->model();
+		return $this->_parseConditions($query->conditions(), array('alias'=>$model::meta('name')));
 	}
 
 	/**
 	 *
 	 */
 	public function fields($fields, $query) {
-		return $fields = $fields ?: array();
+		return $this->columns($query);
 	}
 
 	/**
@@ -212,20 +230,7 @@ class Doctrine extends \lithium\data\Source {
 		return $limit ?: array();
 	}
 
-	/**
-	 *
-	 */
-	public function name($name) {
-		return $name;
-	}
-
-	/**
-	 *
-	 */
-	public function columns($query, $resource = null, $context = null) {
-	}
-
-	public function parseConditions($conditions, $options) {
+	protected function _parseConditions($conditions, $options) {
 		$query = $this->getEntityManager()->createQueryBuilder();
 		if (empty($conditions)) {
 			return null;
@@ -241,7 +246,7 @@ class Doctrine extends \lithium\data\Source {
 						if (is_string($innerKey)) {
 							$piece = array($innerKey => $piece);
 						}
-						$innerQuery->{$clause.'Where'}($this->parseConditions($piece, $options));
+						$innerQuery->{$clause.'Where'}($this->_parseConditions($piece, $options));
 					}
 					$query->andWhere($innerQuery->getDqlPart('where'));
 				} else if (is_string($key)) {
@@ -257,7 +262,7 @@ class Doctrine extends \lithium\data\Source {
 						$query->andWhere($expr->eq($key, $expr->literal($value)));
 					}
 				} else {
-					$query->andWhere($this->parseConditions($value, $options));
+					$query->andWhere($this->_parseConditions($value, $options));
 				}
 			}
 		}

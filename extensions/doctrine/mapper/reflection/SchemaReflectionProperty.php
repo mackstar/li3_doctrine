@@ -10,6 +10,7 @@ namespace li3_doctrine\extensions\doctrine\mapper\reflection;
 
 class SchemaReflectionProperty extends \ReflectionProperty {
 	protected $_name;
+
 	public function __construct($class, $name){
 		try {
 			parent::__construct($class, $name);
@@ -23,6 +24,14 @@ class SchemaReflectionProperty extends \ReflectionProperty {
 			return $this->_name;
 		}
 		return parent::getName();
+	}
+
+	public function setValue($entity, $value) {
+		if (isset($this->_name)) {
+			$entity->{$this->_name} = $value;
+		} else {
+			parent::setValue($entity, $value);
+		}
 	}
 
 	public function getAccessible() {
