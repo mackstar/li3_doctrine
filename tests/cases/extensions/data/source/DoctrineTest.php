@@ -28,7 +28,6 @@ class TestDoctrine extends \li3_doctrine\extensions\data\source\Doctrine {
  * Doctrine data source tests.
  */
 class DoctrineTest extends \lithium\test\Unit {
-	protected $_connection;
 	public function setUp() {
 		if (!Connections::get('doctrineTest')) {
 			Connections::add('doctrineTest', 'Doctrine', array(
@@ -135,7 +134,6 @@ class DoctrineTest extends \lithium\test\Unit {
 		$result = $this->doctrine->doctrineQuery->getDql();
 		$this->assertPattern('/^SELECT\sMockDoctrinePost\.id\s+FROM/i', $result);
 	}
-
 
 	public function testCreate() {
 	}
