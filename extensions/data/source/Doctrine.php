@@ -177,13 +177,32 @@ class Doctrine extends \lithium\data\source\Database {
 					$scope = $query['model'];
 				}
 				foreach($fields as $field) {
-					$doctrineQuery->addSelect($scope::meta('name') . '.' . $field);
+					$doctrineQuery->addSelect("{$scope::meta('name')}.{$field}");
 				}
 			}
 
 			if (isset($query['conditions'])) {
 				$doctrineQuery->add('where', $query['conditions']);
 			}
+
+			if (empty($query['offset']) && !empty($query['page'])) {
+				$query['offset'] = ($query['page'] - 1) * $query['limit'];
+			}
+
+			if (!empty($query['offset'])) {
+				$doctrineQuery->setFirstResult($query['offset']);
+			}
+
+			if (!empty($query['limit'])) {
+				$doctrineQuery->setMaxResults($query['limit']);
+			}
+
+			if (!empty($query['order'])) {
+				foreach($query['order'] as $field => $direction) {
+					$doctrineQuery->addOrderBy($field, $direction);
+				}
+			}
+
 			return $doctrineQuery->getQuery();
 		});
 
@@ -226,6 +245,31 @@ class Doctrine extends \lithium\data\source\Database {
 	 *
 	 */
 	public function order($order, $query) {
+		if (!empty($order)) {
+			$pattern = '/\s+(ASC|DESC)/i';
+			$model = $query->model();
+			$name = $model::meta('name');
+			$sort = array();
+			foreach((array) $order as $field => $direction) {
+				$index = $field;
+				if (!is_string($field)) {
+					$field = $direction;
+					$direction = null;
+				}
+
+				if (preg_match($pattern, $field, $matches)) {
+					$field = preg_replace($pattern, '', $field);
+					$direction = $matches[1];
+				}
+
+				if (strpos($field, '.') === false) {
+					$field = "{$name}.{$field}";
+				}
+
+				$sort[$field] = strtoupper($direction ?: 'ASC');
+			}
+			$order = $sort;
+		}
 		return $order ?: array();
 	}
 
@@ -252,12 +296,12 @@ class Doctrine extends \lithium\data\source\Database {
 						if (is_string($innerKey)) {
 							$piece = array($innerKey => $piece);
 						}
-						$innerQuery->{$clause.'Where'}($this->_parseConditions($piece, $options));
+						$innerQuery->{"{$clause}Where"}($this->_parseConditions($piece, $options));
 					}
 					$query->andWhere($innerQuery->getDqlPart('where'));
 				} else if (is_string($key)) {
 					if (strpos($key, '.') === false) {
-						$key = $options['alias'] . '.' . $key;
+						$key = "{$options['alias']}.{$key}";
 					}
 					if (is_array($value)) {
 						foreach($value as $iv => $ivalue) {
