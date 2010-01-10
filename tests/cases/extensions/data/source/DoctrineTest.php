@@ -8,8 +8,10 @@
 
 namespace li3_doctrine\tests\cases\extensions\data\source;
 
-use \lithium\data\Connections;
 use \li3_doctrine\tests\mocks\data\model\MockDoctrinePost;
+
+use \lithium\data\Connections;
+use \lithium\data\model\Query;
 
 class TestDoctrine extends \li3_doctrine\extensions\data\source\Doctrine {
 	public function parseConditions() {
@@ -26,26 +28,31 @@ class TestDoctrine extends \li3_doctrine\extensions\data\source\Doctrine {
  * Doctrine data source tests.
  */
 class DoctrineTest extends \lithium\test\Unit {
-	protected $_connection = 'doctrineTest';
 	public function setUp() {
-		if (!Connections::get($this->_connection)) {
-			Connections::add($this->_connection, 'Doctrine', array(
+		if (!Connections::get('doctrineTest')) {
+			Connections::add('doctrineTest', 'Doctrine', array(
 				'driver' => 'pdo_sqlite',
 				'path' => ':memory:'
 			));
 		}
+
+		$this->doctrine = new TestDoctrine(Connections::get('doctrineTest', array('config'=>true)));
+	}
+
+	public function tearDown() {
+		$this->doctrine->disconnect();
+		unset($this->doctrine);
 	}
 
 	public function testParseConditions() {
 		$alias = MockDoctrinePost::meta('name');
-		$doctrine = new TestDoctrine(Connections::get($this->_connection, array('config'=>true)));
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->doctrine->parseConditions(array(
 			'id' => 1
 		), compact('alias'));
 		$this->assertPattern('/^MockDoctrinePost\.id\s*=\s*1$/i', $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->doctrine->parseConditions(array(
 			'id' => 1,
 			'title' => 'lithium'
 		), compact('alias'));
@@ -55,7 +62,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			'(MockDoctrinePost.title\s*=\s*\'lithium\')'
 		)), $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->doctrine->parseConditions(array(
 			'id' => 1,
 			'or' => array(
 				'title' => 'lithium',
@@ -72,7 +79,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			'\s*)'
 		)), $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->doctrine->parseConditions(array(
 			'id' => 1,
 			'or' => array(
 				'title' => 'lithium',
@@ -89,19 +96,54 @@ class DoctrineTest extends \lithium\test\Unit {
 			'\s*)'
 		)), $result);
 
-		$result = $doctrine->parseConditions(array(
+		$result = $this->doctrine->parseConditions(array(
 			'id' => array(1, 2)
 		), compact('alias'));
 		$this->assertPattern('/^MockDoctrinePost\.id\s+IN\s*\(\s*1\s*,\s*2\s*\)$/i', $result);
+	}
+
+	public function testQuery() {
+		$this->doctrine->applyFilter('read', function($self, $params, $chain) {
+			$self->doctrineQuery = $chain->next($self, $params, $chain);
+		});
+
+		$this->expectException();
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost'
+		));
+		$this->doctrine->read($query, array('model'=>$query->model()));
+		$result = $this->doctrine->doctrineQuery->getDql();
+		$pattern = '/^SELECT\s+(.+)?\s+FROM/i';
+		$this->assertPattern($pattern, $result);
+		if (preg_match($pattern, $result, $matches)) {
+			$fields = explode(',', preg_replace('/\s+/', '', $matches[1]));
+			$schemaFields = array();
+			foreach(array_keys(MockDoctrinePost::schema()) as $field) {
+				$schemaFields[] = MockDoctrinePost::meta('name').'.'.$field;
+			}
+			sort($schemaFields);
+			sort($fields);
+			$this->assertEqual($fields, $schemaFields);
+		}
+
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
+			'fields' => 'id'
+		));
+		$this->doctrine->read($query, array('model'=>$query->model()));
+		$result = $this->doctrine->doctrineQuery->getDql();
+		$this->assertPattern('/^SELECT\sMockDoctrinePost\.id\s+FROM/i', $result);
 	}
 
 	public function testCreate() {
 	}
 
 	public function testRead() {
-		$result = MockDoctrinePost::find('first', array(
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
 			'conditions' => array('MockDoctrinePost.id' => 1)
 		));
+		$result = $this->doctrine->read($query, array('model'=>$query->model()));
 		$expected = array(
 			'id' => 1,
 			'title' => 'First post',
@@ -109,7 +151,9 @@ class DoctrineTest extends \lithium\test\Unit {
 			'created' => new \DateTime('2010-01-02 17:06:04'),
 			'modified' => new \DateTime('2010-01-02 17:06:04')
 		);
-		$this->assertEqual($this->_toArray($result), $expected);
+		$this->assertTrue(!empty($result));
+		$this->assertEqual(count($result), 1);
+		$this->assertEqual($this->_toArray($result[0]), $expected);
 	}
 
 	public function testUpdate() {
@@ -140,7 +184,6 @@ class DoctrineTest extends \lithium\test\Unit {
 		}
 		return $row;
 	}
-
 }
 
 ?>

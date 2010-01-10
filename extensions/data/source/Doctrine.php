@@ -167,12 +167,15 @@ class Doctrine extends \lithium\data\source\Database {
 	 */
 	public function read($query, $options) {
 		$query = $query->export($this);
-		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
+		$query = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
 			extract($params);
 			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
 			$doctrineQuery->from($options['model'], $options['model']::meta('name'));
 
 			foreach($query['fields'] as $scope => $fields) {
+				if (!is_string($scope)) {
+					$scope = $query['model'];
+				}
 				foreach($fields as $field) {
 					$doctrineQuery->addSelect($scope::meta('name') . '.' . $field);
 				}
@@ -181,10 +184,13 @@ class Doctrine extends \lithium\data\source\Database {
 			if (isset($query['conditions'])) {
 				$doctrineQuery->add('where', $query['conditions']);
 			}
-			return $doctrineQuery;
+			return $doctrineQuery->getQuery();
 		});
 
-		$query = $doctrineQuery->getQuery();
+		if (!isset($query)) {
+			return null;
+		}
+
 		$query->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
 		return $query->getResult();
 	}
