@@ -11,13 +11,9 @@ namespace li3_doctrine\tests\mocks\data\model;
 /**
  *
  */
-class MockDoctrineComment extends \lithium\data\Model {
-	public $belongsTo = array(
-		'MockDoctrinePost' => array('key' => 'post_id')
-	);
-
+class MockDoctrineExcerpt extends \lithium\data\Model {
 	protected $_meta = array(
-		'source' => 'comments',
+		'source' => 'excerpts',
 		'key' => 'id',
 		'connection' => 'doctrineTest'
 	);
@@ -25,9 +21,7 @@ class MockDoctrineComment extends \lithium\data\Model {
 	protected $_schema = array(
 		'id' => array('type' => 'integer', 'unsigned' => true, 'notnull' => true),
 		'post_id' => array('type' => 'integer', 'unsigned' => true, 'notnull' => true),
-		'name' => array('type' => 'string', 'notnull' => true),
-		'email' => array('type' => 'string', 'notnull' => true),
-		'body' => array('type' => 'text', 'notnull' => true),
+		'excerpt' => array('type' => 'text', 'notnull' => true),
 		'created' => array('type' => 'datetime'),
 		'modified' => array('type' => 'datetime')
 	);

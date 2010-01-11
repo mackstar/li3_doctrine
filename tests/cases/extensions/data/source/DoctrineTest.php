@@ -113,17 +113,17 @@ class DoctrineTest extends \lithium\test\Unit {
 		));
 		$this->doctrine->read($query, array('model'=>$query->model()));
 		$result = $this->doctrine->doctrineQuery->getDql();
-		$pattern = '/^SELECT\s+(.+)?\s+FROM/i';
+		$pattern = '/^SELECT\s+(.+?)\s+FROM\b/i';
 		$this->assertPattern($pattern, $result);
 		if (preg_match($pattern, $result, $matches)) {
-			$fields = explode(',', preg_replace('/\s+/', '', $matches[1]));
-			$schemaFields = array();
+			$result = explode(',', preg_replace('/\s+/', '', $matches[1]));
+			$expected = array();
 			foreach(array_keys(MockDoctrinePost::schema()) as $field) {
-				$schemaFields[] = MockDoctrinePost::meta('name').'.'.$field;
+				$expected[] = MockDoctrinePost::meta('name').'.'.$field;
 			}
-			sort($schemaFields);
-			sort($fields);
-			$this->assertEqual($fields, $schemaFields);
+			sort($result);
+			sort($expected);
+			$this->assertEqual($expected, $result);
 		}
 
 		$query = new Query(array(
@@ -132,7 +132,70 @@ class DoctrineTest extends \lithium\test\Unit {
 		));
 		$this->doctrine->read($query, array('model'=>$query->model()));
 		$result = $this->doctrine->doctrineQuery->getDql();
-		$this->assertPattern('/^SELECT\sMockDoctrinePost\.id\s+FROM/i', $result);
+		$this->assertPattern('/^SELECT\s+MockDoctrinePost\.id\s+FROM\b/i', $result);
+
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
+			'fields' => array('id', 'title')
+		));
+		$this->doctrine->read($query, array('model'=>$query->model()));
+		$result = $this->doctrine->doctrineQuery->getDql();
+		$pattern = '/^SELECT\s+(.+?)\s+FROM\b/i';
+		$this->assertPattern($pattern, $result);
+		if (preg_match($pattern, $result, $matches)) {
+			$result = explode(',', preg_replace('/\s+/', '', $matches[1]));
+			$expected = array(
+				'MockDoctrinePost.id',
+				'MockDoctrinePost.title'
+			);
+			sort($result);
+			sort($expected);
+			$this->assertEqual($expected, $result);
+		}
+
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
+			'limit' => 5
+		));
+		$this->doctrine->read($query, array('model'=>$query->model()));
+		$this->assertEqual(5, $this->doctrine->doctrineQuery->getMaxResults());
+
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
+			'page' => 2,
+			'limit' => 5
+		));
+		$this->doctrine->read($query, array('model'=>$query->model()));
+		$this->assertEqual(5, $this->doctrine->doctrineQuery->getFirstResult());
+		$this->assertEqual(5, $this->doctrine->doctrineQuery->getMaxResults());
+
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
+			'order' => 'id DESC',
+		));
+		$this->doctrine->read($query, array('model'=>$query->model()));
+		$result = $this->doctrine->doctrineQuery->getDql();
+		$this->assertPattern('/\bORDER\s+BY\s+MockDoctrinePost\.id\s+DESC\b/i', $result);
+
+		$query = new Query(array(
+			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
+			'order' => array('id DESC', 'title' => 'asc'),
+		));
+		$this->doctrine->read($query, array('model'=>$query->model()));
+		$result = $this->doctrine->doctrineQuery->getDql();
+		$this->assertPattern('/\bORDER\s+BY\s+MockDoctrinePost\.id\s+DESC\b/i', $result);
+		$pattern = '/\bORDER\s+BY\s+(.+)$/i';
+		$this->assertPattern($pattern, $result);
+		if (preg_match($pattern, $result, $matches)) {
+			$result = explode(',', preg_replace('/,\s+/', ',', $matches[1]));
+			$expected = array(
+				'MockDoctrinePost.id DESC',
+				'MockDoctrinePost.title ASC'
+			);
+			sort($result);
+			sort($expected);
+			$this->assertEqual($expected, $result);
+		}
 	}
 
 	public function testCreate() {
@@ -146,14 +209,15 @@ class DoctrineTest extends \lithium\test\Unit {
 		$result = $this->doctrine->read($query, array('model'=>$query->model()));
 		$expected = array(
 			'id' => 1,
+			'author_id' => 0,
 			'title' => 'First post',
 			'body' => 'This is the body for the first post',
 			'created' => new \DateTime('2010-01-02 17:06:04'),
 			'modified' => new \DateTime('2010-01-02 17:06:04')
 		);
 		$this->assertTrue(!empty($result));
-		$this->assertEqual(count($result), 1);
-		$this->assertEqual($this->_toArray($result[0]), $expected);
+		$this->assertEqual(1, count($result));
+		$this->assertEqual($expected, $this->_toArray($result[0]));
 	}
 
 	public function testUpdate() {

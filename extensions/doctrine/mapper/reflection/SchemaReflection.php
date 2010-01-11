@@ -8,8 +8,19 @@
 
 namespace li3_doctrine\extensions\doctrine\mapper\reflection;
 
+use \lithium\util\Set;
+
 class SchemaReflection extends \ReflectionClass {
+	protected $_relations;
 	protected $_schema;
+
+	public function getRelations() {
+		return $this->_relations;
+	}
+
+	public function setRelations($relations) {
+		$this->_relations = $relations;
+	}
 
 	public function getSchema() {
 		return $this->_schema;
@@ -20,11 +31,21 @@ class SchemaReflection extends \ReflectionClass {
 	}
 
 	public function getProperty($name) {
+		$fields = array_keys($this->getSchema());
+		$relations = $this->getRelations();
+		if (!empty($relations)) {
+			foreach($relations as $type => $set) {
+				foreach($set as $key => $relation) {
+					$fields[] = $relation['fieldName'];
+				}
+			}
+		}
+
 		$property = null;
 		try {
 			$property = parent::getProperty($name);
 		} catch(\ReflectionException $e) {
-			if (!array_key_exists($name, $this->_schema)) {
+			if (!in_array($name, $fields)) {
 				throw $e;
 			}
 		}

@@ -12,8 +12,14 @@ namespace li3_doctrine\tests\mocks\data\model;
  *
  */
 class MockDoctrinePost extends \lithium\data\Model {
+	public $belongsTo = array(
+		'MockDoctrineAuthor' => array('key' => 'author_id')
+	);
+	public $hasOne = array(
+		'MockDoctrineExcerpt' => array('key' => 'post_id', 'dependent' => true)
+	);
 	public $hasMany = array(
-		'MockDoctrineComment'
+		'MockDoctrineComment' => array('key' => 'post_id')
 	);
 
 	protected $_meta = array(
@@ -24,6 +30,7 @@ class MockDoctrinePost extends \lithium\data\Model {
 
 	protected $_schema = array(
 		'id' => array('type' => 'integer', 'unsigned' => true, 'notnull' => true),
+		'author_id' => array('type' => 'integer', 'unsigned' => true, 'notnull' => true),
 		'title' => array('type' => 'string', 'notnull' => true),
 		'body' => array('type' => 'text', 'notnull' => true),
 		'created' => array('type' => 'datetime'),
