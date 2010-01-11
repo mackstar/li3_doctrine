@@ -123,7 +123,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			}
 			sort($result);
 			sort($expected);
-			$this->assertEqual($result, $expected);
+			$this->assertEqual($expected, $result);
 		}
 
 		$query = new Query(array(
@@ -150,7 +150,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			);
 			sort($result);
 			sort($expected);
-			$this->assertEqual($result, $expected);
+			$this->assertEqual($expected, $result);
 		}
 
 		$query = new Query(array(
@@ -158,7 +158,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			'limit' => 5
 		));
 		$this->doctrine->read($query, array('model'=>$query->model()));
-		$this->assertEqual($this->doctrine->doctrineQuery->getMaxResults(), 5);
+		$this->assertEqual(5, $this->doctrine->doctrineQuery->getMaxResults());
 
 		$query = new Query(array(
 			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
@@ -166,8 +166,8 @@ class DoctrineTest extends \lithium\test\Unit {
 			'limit' => 5
 		));
 		$this->doctrine->read($query, array('model'=>$query->model()));
-		$this->assertEqual($this->doctrine->doctrineQuery->getFirstResult(), 5);
-		$this->assertEqual($this->doctrine->doctrineQuery->getMaxResults(), 5);
+		$this->assertEqual(5, $this->doctrine->doctrineQuery->getFirstResult());
+		$this->assertEqual(5, $this->doctrine->doctrineQuery->getMaxResults());
 
 		$query = new Query(array(
 			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
@@ -194,7 +194,7 @@ class DoctrineTest extends \lithium\test\Unit {
 			);
 			sort($result);
 			sort($expected);
-			$this->assertEqual($result, $expected);
+			$this->assertEqual($expected, $result);
 		}
 	}
 
@@ -209,14 +209,15 @@ class DoctrineTest extends \lithium\test\Unit {
 		$result = $this->doctrine->read($query, array('model'=>$query->model()));
 		$expected = array(
 			'id' => 1,
+			'author_id' => 0,
 			'title' => 'First post',
 			'body' => 'This is the body for the first post',
 			'created' => new \DateTime('2010-01-02 17:06:04'),
 			'modified' => new \DateTime('2010-01-02 17:06:04')
 		);
 		$this->assertTrue(!empty($result));
-		$this->assertEqual(count($result), 1);
-		$this->assertEqual($this->_toArray($result[0]), $expected);
+		$this->assertEqual(1, count($result));
+		$this->assertEqual($expected, $this->_toArray($result[0]));
 	}
 
 	public function testUpdate() {
