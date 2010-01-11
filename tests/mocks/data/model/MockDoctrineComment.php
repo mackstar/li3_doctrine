@@ -13,7 +13,7 @@ namespace li3_doctrine\tests\mocks\data\model;
  */
 class MockDoctrineComment extends \lithium\data\Model {
 	public $belongsTo = array(
-		'MockDoctrinePost'
+		'MockDoctrinePost' => array('key' => 'post_id')
 	);
 
 	protected $_meta = array(

@@ -46,6 +46,20 @@ class ModelDriverTest extends \lithium\test\Unit {
 		$this->assertEqual($result, $schema);
 	}
 
+	public function testMetadataRelations() {
+		$schema = array_keys($this->post->schema());
+		$meta = $this->datasource->getEntityManager()->getClassMetadata(get_class($this->post));
+		$associations = $meta->getAssociations();
+		$this->assertTrue(!empty($associations));
+		$this->assertEqual(array_keys($associations), array('id'));
+		$this->assertTrue($associations['id']->isOneToMany());
+		$this->assertFalse($associations['id']->hasCascades());
+		$this->assertEqual($associations['id']->getSourceEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrinePost');
+		$this->assertEqual($associations['id']->getSourceFieldName(), 'id');
+		$this->assertEqual($associations['id']->getTargetEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrineComment');
+		$this->assertEqual($associations['id']->getMappedByFieldName(), 'post_id');
+	}
+
 	public function testMetadataNoSchema() {
 		$connection = Connections::get('doctrineTest', array('config'=>true));
 		$this->skipIf(strpos($connection['driver'], 'sqlite') !== false, 'Non SQLite driver needed for this test');
