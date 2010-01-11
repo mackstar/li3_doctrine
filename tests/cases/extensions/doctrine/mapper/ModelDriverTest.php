@@ -70,14 +70,26 @@ class ModelDriverTest extends \lithium\test\Unit {
 		sort($expected);
 		$this->assertTrue(!empty($associations));
 		$this->assertEqual($expected, $result);
+		$this->assertTrue($associations['mockDoctrineAuthor']->isOneToOne());
+		$this->assertFalse($associations['mockDoctrineAuthor']->hasCascades());
+		$this->assertEqual($associations['mockDoctrineAuthor']->getSourceEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrinePost');
+		$this->assertEqual($associations['mockDoctrineAuthor']->getTargetEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrineAuthor');
+
 		$this->assertTrue($associations['mockDoctrineComment']->isOneToMany());
 		$this->assertFalse($associations['mockDoctrineComment']->hasCascades());
 		$this->assertEqual($associations['mockDoctrineComment']->getSourceEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrinePost');
 		$this->assertEqual($associations['mockDoctrineComment']->getTargetEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrineComment');
 		$this->assertEqual($associations['mockDoctrineComment']->getMappedByFieldName(), 'post_id');
 
+		$this->assertTrue($associations['mockDoctrineExcerpt']->isOneToOne());
+		$this->assertTrue($associations['mockDoctrineExcerpt']->hasCascades());
+		$this->assertEqual($associations['mockDoctrineExcerpt']->getSourceEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrinePost');
+		$this->assertEqual($associations['mockDoctrineExcerpt']->getTargetEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrineExcerpt');
+		$this->assertEqual($associations['mockDoctrineExcerpt']->getMappedByFieldName(), 'post_id');
+
 		//$post = MockDoctrinePost::find('first', array('conditions' => array('id' => 1)));
 		//var_dump($post);
+		//var_dump($post->mockDoctrineComment);
 	}
 
 	public function testEntities() {

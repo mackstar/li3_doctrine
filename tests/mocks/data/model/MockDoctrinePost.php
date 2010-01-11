@@ -16,7 +16,7 @@ class MockDoctrinePost extends \lithium\data\Model {
 		'MockDoctrineAuthor' => array('key' => 'author_id')
 	);
 	public $hasOne = array(
-		'MockDoctrineExcerpt' => array('key' => 'post_id')
+		'MockDoctrineExcerpt' => array('key' => 'post_id', 'dependent' => true)
 	);
 	public $hasMany = array(
 		'MockDoctrineComment' => array('key' => 'post_id')
