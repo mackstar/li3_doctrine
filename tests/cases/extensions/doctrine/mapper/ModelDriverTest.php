@@ -47,7 +47,6 @@ class ModelDriverTest extends \lithium\test\Unit {
 	}
 
 	public function testMetadataRelations() {
-		$schema = array_keys($this->post->schema());
 		$meta = $this->datasource->getEntityManager()->getClassMetadata(get_class($this->post));
 		$associations = $meta->getAssociations();
 		$this->assertTrue(!empty($associations));
