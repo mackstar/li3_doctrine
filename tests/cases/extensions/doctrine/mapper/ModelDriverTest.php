@@ -43,20 +43,8 @@ class ModelDriverTest extends \lithium\test\Unit {
 		$properties = $meta->getReflectionProperties();
 		$this->assertTrue(!empty($properties));
 		$result = array_keys($properties);
-		$this->assertEqual($result, $schema);
-	}
-
-	public function testMetadataRelations() {
-		$meta = $this->datasource->getEntityManager()->getClassMetadata(get_class($this->post));
-		$associations = $meta->getAssociations();
-		$this->assertTrue(!empty($associations));
-		$this->assertEqual(array_keys($associations), array('id'));
-		$this->assertTrue($associations['id']->isOneToMany());
-		$this->assertFalse($associations['id']->hasCascades());
-		$this->assertEqual($associations['id']->getSourceEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrinePost');
-		$this->assertEqual($associations['id']->getSourceFieldName(), 'id');
-		$this->assertEqual($associations['id']->getTargetEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrineComment');
-		$this->assertEqual($associations['id']->getMappedByFieldName(), 'post_id');
+		$expected = array_merge($schema, array('mockDoctrineAuthor', 'mockDoctrineComment', 'mockDoctrineExcerpt'));
+		$this->assertEqual($expected, $result);
 	}
 
 	public function testMetadataNoSchema() {
@@ -69,7 +57,27 @@ class ModelDriverTest extends \lithium\test\Unit {
 		$properties = $meta->getReflectionProperties();
 		$this->assertTrue(!empty($properties));
 		$result = array_keys($properties);
-		$this->assertEqual($result, $schema);
+		$this->assertEqual($schema, $result);
+	}
+
+
+	public function testMetadataRelations() {
+		$meta = $this->datasource->getEntityManager()->getClassMetadata(get_class($this->post));
+		$associations = $meta->getAssociations();
+		$result = array_keys($associations);
+		$expected = array('mockDoctrineAuthor', 'mockDoctrineComment', 'mockDoctrineExcerpt');
+		sort($result);
+		sort($expected);
+		$this->assertTrue(!empty($associations));
+		$this->assertEqual($expected, $result);
+		$this->assertTrue($associations['mockDoctrineComment']->isOneToMany());
+		$this->assertFalse($associations['mockDoctrineComment']->hasCascades());
+		$this->assertEqual($associations['mockDoctrineComment']->getSourceEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrinePost');
+		$this->assertEqual($associations['mockDoctrineComment']->getTargetEntityName(), 'li3_doctrine\tests\mocks\data\model\MockDoctrineComment');
+		$this->assertEqual($associations['mockDoctrineComment']->getMappedByFieldName(), 'post_id');
+
+		//$post = MockDoctrinePost::find('first', array('conditions' => array('id' => 1)));
+		//var_dump($post);
 	}
 
 	public function testEntities() {

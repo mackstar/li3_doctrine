@@ -32,7 +32,39 @@ class ModelDriver implements Driver {
 		$metadata->primaryTable['name'] = $className::meta('source');
 		$primaryKey = $className::meta('key');
 
+		$bindings = $this->_bindings($className);
+		$relations = array();
+		if (!empty($bindings)) {
+			foreach($bindings as $type => $set) {
+				foreach($set as $key => $relation) {
+					$fieldName = $relation['class']::meta('name');
+					$fieldName = strtolower($fieldName[0]).substr($fieldName, 1);
+					$mapping = array(
+						'fieldName' => $fieldName,
+						'sourceEntity' => $className,
+						'targetEntity' => $relation['class'],
+						'mappedBy' => null,
+						'cascade' => !empty($relation['dependent']) ? array('remove') : array()
+					);
+
+					switch($type) {
+						case 'hasOne':
+						case 'hasMany':
+							$mapping['mappedBy'] = $relation['key'];
+						break;
+						case 'belongsTo':
+							$mapping['mappedBy'] = $relation['class']::meta('key');
+						break;
+					}
+
+					$relations[$type][$key] = $mapping;
+				}
+			}
+		}
+
 		$schema = (array) $className::schema();
+
+		$metadata->reflClass->setRelations($relations);
 		$metadata->reflClass->setSchema($schema);
 
 		foreach ($schema as $field => $column) {
@@ -43,18 +75,9 @@ class ModelDriver implements Driver {
 			$metadata->mapField($mapping + (array) $column);
 		}
 
-		$bindings = $this->_bindings($className);
-		if (!empty($bindings)) {
-			foreach($bindings as $type => $relations) {
-				foreach($relations as $key => $relation) {
-					$metadata->{self::$_bindingMapping[$type]}(array(
-						'fieldName' => $type == 'hasMany' ? $primaryKey : $relation['key'],
-						'sourceEntity' => $className,
-						'targetEntity' => $relation['class'],
-						'mappedBy' => $type == 'hasMany' ? $relation['key'] : null,
-						'cascade' => $relation['dependent'] ? array('remove') : array()
-					));
-				}
+		foreach($relations as $type => $set) {
+			foreach($set as $key => $mapping) {
+				$metadata->{self::$_bindingMapping[$type]}($mapping);
 			}
 		}
 	}
