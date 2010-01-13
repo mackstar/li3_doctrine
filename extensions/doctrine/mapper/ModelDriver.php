@@ -40,12 +40,21 @@ class ModelDriver implements Driver {
 					$fieldName = $relation['class']::meta('name');
 					$fieldName = strtolower($fieldName[0]).substr($fieldName, 1);
 					$mapping = array(
+						'fetch' => \Doctrine\ORM\Mapping\AssociationMapping::FETCH_EAGER,
 						'fieldName' => $fieldName,
 						'sourceEntity' => $className,
 						'targetEntity' => $relation['class'],
 						'mappedBy' => null,
 						'cascade' => !empty($relation['dependent']) ? array('remove') : array()
 					);
+
+					if (in_array($type, array('hasOne', 'hasMany'))) {
+						$mapping['joinColumns'][] = array(
+							'fieldName' => $relation['key'],
+							'name' => $fieldName,
+							'referencedColumnName' => $relation['class']::meta('key')
+						);
+					}
 
 					switch($type) {
 						case 'hasOne':
