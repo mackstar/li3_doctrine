@@ -86,6 +86,11 @@ class ModelDriver implements Driver {
 		return true;
 	}
 
+	public function getAllClassNames() {
+		$classes = array();
+		return $classes;
+	}
+
 	public function preload() {
 		$tables = array();
 		return $tables;
