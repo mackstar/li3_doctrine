@@ -11,7 +11,6 @@ namespace li3_doctrine\extensions\doctrine\mapper;
 use \li3_doctrine\extensions\doctrine\mapper\reflection\SchemaReflection;
 use \lithium\data\Connections;
 use \lithium\util\Inflector;
-use \lithium\util\Set;
 use \Doctrine\ORM\Mapping\ClassMetadataInfo;
 use \Doctrine\ORM\Mapping\Driver\Driver;
 
