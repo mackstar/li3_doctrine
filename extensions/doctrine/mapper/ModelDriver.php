@@ -11,6 +11,7 @@ namespace li3_doctrine\extensions\doctrine\mapper;
 use \li3_doctrine\extensions\doctrine\mapper\reflection\SchemaReflection;
 use \lithium\data\Connections;
 use \lithium\util\Inflector;
+use \lithium\util\Set;
 use \Doctrine\ORM\Mapping\ClassMetadataInfo;
 use \Doctrine\ORM\Mapping\Driver\Driver;
 
@@ -37,21 +38,24 @@ class ModelDriver implements Driver {
 		if (!empty($bindings)) {
 			foreach($bindings as $type => $set) {
 				foreach($set as $key => $relation) {
-					$fieldName = $relation['class']::meta('name');
-					$fieldName = strtolower($fieldName[0]).substr($fieldName, 1);
+					if (empty($relation['fieldName'])) {
+						$relation['fieldName'] = $relation['class']::meta('name');
+						$relation['fieldName'] = strtolower($relation['fieldName'][0]).substr($relation['fieldName'], 1);
+					}
+
 					$mapping = array(
 						'fetch' => \Doctrine\ORM\Mapping\AssociationMapping::FETCH_EAGER,
-						'fieldName' => $fieldName,
+						'fieldName' => $relation['fieldName'],
 						'sourceEntity' => $className,
 						'targetEntity' => $relation['class'],
 						'mappedBy' => null,
 						'cascade' => !empty($relation['dependent']) ? array('remove') : array()
 					);
 
-					if (in_array($type, array('hasOne', 'hasMany'))) {
+					if (in_array($type, array('hasOne', 'belongsTo'))) {
 						$mapping['joinColumns'][] = array(
-							'fieldName' => $relation['key'],
-							'name' => $fieldName,
+							'fieldName' => $type == 'hasOne' ? $relation['key'] : $relation['fieldName'],
+							'name' => $type == 'hasOne' ? $relation['fieldName'] : $relation['key'],
 							'referencedColumnName' => $relation['class']::meta('key')
 						);
 					}
@@ -61,27 +65,30 @@ class ModelDriver implements Driver {
 						case 'hasMany':
 							$mapping['mappedBy'] = $relation['key'];
 						break;
-						case 'belongsTo':
-							$mapping['mappedBy'] = $relation['class']::meta('key');
-						break;
 					}
 
 					$relations[$type][$key] = $mapping;
+					$bindings[$type][$key] = $relation;
 				}
 			}
 		}
 
 		$schema = (array) $className::schema();
-
 		$metadata->reflClass->setRelations($relations);
 		$metadata->reflClass->setSchema($schema);
 
 		foreach ($schema as $field => $column) {
 			$mapping = array(
 				'id' => $field == $primaryKey,
-				'fieldName' => $field
-			);
-			$metadata->mapField($mapping + (array) $column);
+				'fieldName' => $field,
+				'columnName' => $field
+			) + (array) $column;
+
+			$metadata->mapField($mapping);
+
+			if ($mapping['id']) {
+				$metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_AUTO);
+			}
 		}
 
 		foreach($relations as $type => $set) {
@@ -123,6 +130,7 @@ class ModelDriver implements Driver {
 
 			foreach($relations as $key => $value) {
 				$defaults = array(
+					'alias' => null,
 					'class' => null,
 					'key' => null,
 					'conditions' => null,
@@ -172,8 +180,12 @@ class ModelDriver implements Driver {
 					$relation['class'] = $ns($relation['class']);
 				}
 
+				if (empty($relation['alias'])) {
+					$relation['alias'] = $relation['class']::meta('name');
+				}
+
 				if (!is_string($key)) {
-					$key = $relation['class']::meta('name');
+					$key = $relation['alias'];
 				}
 
 				$bindings[$binding][$key] = $relation;

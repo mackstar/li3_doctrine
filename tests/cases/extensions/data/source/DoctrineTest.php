@@ -209,7 +209,7 @@ class DoctrineTest extends \lithium\test\Unit {
 		$result = $this->doctrine->read($query, array('model'=>$query->model()));
 		$expected = array(
 			'id' => 1,
-			'author_id' => 0,
+			'author_id' => 1,
 			'title' => 'First post',
 			'body' => 'This is the body for the first post',
 			'created' => new \DateTime('2010-01-02 17:06:04'),
