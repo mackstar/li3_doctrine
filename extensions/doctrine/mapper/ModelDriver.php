@@ -11,6 +11,7 @@ namespace li3_doctrine\extensions\doctrine\mapper;
 use \li3_doctrine\extensions\doctrine\mapper\reflection\SchemaReflection;
 use \lithium\data\Connections;
 use \lithium\util\Inflector;
+use \lithium\util\Set;
 use \Doctrine\ORM\Mapping\ClassMetadataInfo;
 use \Doctrine\ORM\Mapping\Driver\Driver;
 
@@ -23,6 +24,7 @@ class ModelDriver implements Driver {
 		'hasMany' => 'mapOneToMany',
 		'hasOne' => 'mapOneToOne'
 	);
+	protected static $_bindings = array();
 
 	public function loadMetadataForClass($className, ClassMetadataInfo $metadata) {
 		if (!($metadata->reflClass instanceof SchemaReflection)) {
@@ -32,16 +34,11 @@ class ModelDriver implements Driver {
 		$metadata->primaryTable['name'] = $className::meta('source');
 		$primaryKey = $className::meta('key');
 
-		$bindings = $this->_bindings($className);
+		$bindings = self::bindings($className);
 		$relations = array();
 		if (!empty($bindings)) {
 			foreach($bindings as $type => $set) {
 				foreach($set as $key => $relation) {
-					if (empty($relation['fieldName'])) {
-						$relation['fieldName'] = $relation['class']::meta('name');
-						$relation['fieldName'] = strtolower($relation['fieldName'][0]).substr($relation['fieldName'], 1);
-					}
-
 					$mapping = array(
 						'fetch' => \Doctrine\ORM\Mapping\AssociationMapping::FETCH_EAGER,
 						'fieldName' => $relation['fieldName'],
@@ -51,7 +48,7 @@ class ModelDriver implements Driver {
 						'cascade' => !empty($relation['dependent']) ? array('remove') : array()
 					);
 
-					if (in_array($type, array('hasOne', 'belongsTo'))) {
+					if (in_array($type, array('hasOne'))) {
 						$mapping['joinColumns'][] = array(
 							'fieldName' => $type == 'hasOne' ? $relation['key'] : $relation['fieldName'],
 							'name' => $type == 'hasOne' ? $relation['fieldName'] : $relation['key'],
@@ -60,14 +57,17 @@ class ModelDriver implements Driver {
 					}
 
 					switch($type) {
-						case 'hasOne':
+						//case 'hasOne':
 						case 'hasMany':
 							$mapping['mappedBy'] = $relation['key'];
+						break;
+						case 'belongsTo':
+							$mapping['mappedBy'] = $relation['class']::meta('key');
 						break;
 					}
 
 					$relations[$type][$key] = $mapping;
-					$bindings[$type][$key] = $relation;
+					//$bindings[$type][$key] = $relation;
 				}
 			}
 		}
@@ -76,10 +76,14 @@ class ModelDriver implements Driver {
 		$metadata->reflClass->setRelations($relations);
 		$metadata->reflClass->setSchema($schema);
 
+		$belongsToFields = !empty($bindings['belongsTo']) ?
+			Set::combine(array_values($bindings['belongsTo']), '/key', '/fieldName') :
+			array();
+
 		foreach ($schema as $field => $column) {
 			$mapping = array(
 				'id' => $field == $primaryKey,
-				'fieldName' => $field,
+				'fieldName' => !empty($belongsToFields[$field]) ? $belongsToFields[$field] : $field,
 				'columnName' => $field
 			) + (array) $column;
 
@@ -111,86 +115,95 @@ class ModelDriver implements Driver {
 		return $tables;
 	}
 
-	protected function _bindings($className) {
-		$ns = function($class) use ($className) {
-			static $namespace;
-			$namespace = $namespace ?: preg_replace('/\w+$/', '', $className);
-			return "{$namespace}{$class}";
-		};
+	public static function bindings($className, $type = null) {
+		if (empty(self::$_bindings[$className])) {
+			$ns = function($class) use ($className) {
+				static $namespace;
+				$namespace = $namespace ?: preg_replace('/\w+$/', '', $className);
+				return "{$namespace}{$class}";
+			};
 
-		$modelName = $className::meta('name');
-		$bindings = array();
-		foreach(self::$_bindingMapping as $binding => $method) {
-			$relations = $className::relations($binding);
-			if (empty($relations)) {
-				$bindings[$binding] = array();
-				continue;
-			}
-
-			foreach($relations as $key => $value) {
-				$defaults = array(
-					'alias' => null,
-					'class' => null,
-					'key' => null,
-					'conditions' => null,
-					'fields' => true
-				);
-
-				if ($binding != 'belongsTo') {
-					$defaults['dependent'] = false;
+			$modelName = $className::meta('name');
+			$bindings = array();
+			foreach(self::$_bindingMapping as $binding => $method) {
+				$relations = $className::relations($binding);
+				if (empty($relations)) {
+					$bindings[$binding] = array();
+					continue;
 				}
 
-				if ($binding == 'hasMany') {
-					$defaults = array_merge($defaults, array(
-						'order' => null,
-						'limit' => null,
-						'exclusive' => null,
-						'finder' => null,
-						'counter' => null
-					));
-				}
+				foreach($relations as $key => $value) {
+					$defaults = array(
+						'alias' => null,
+						'class' => null,
+						'key' => null,
+						'fieldName' => null,
+						'conditions' => null,
+						'fields' => true
+					);
 
-				$relation = array();
-				if (is_array($value)) {
-					$relation = $value;
-				}
-
-				$relation = array_merge($defaults, $relation);
-
-				if (!is_string($key) && is_string($value)) {
-					$relation['class'] = $value;
-				} elseif (is_string($key)) {
-					$relation['class'] = $key;
-				}
-
-				if (empty($relation['key'])) {
-					switch($binding) {
-						case 'belongsTo':
-							$relation['key'] = Inflector::underscore($relation['class']) . '_id';
-						break;
-						case 'hasOne':
-						case 'hasMany':
-							$relation['key'] = Inflector::underscore($modelName) . '_id';
-						break;
+					if ($binding != 'belongsTo') {
+						$defaults['dependent'] = false;
 					}
-				}
 
-				if (strpos($relation['class'], '\\') === false) {
-					$relation['class'] = $ns($relation['class']);
-				}
+					if ($binding == 'hasMany') {
+						$defaults = array_merge($defaults, array(
+							'order' => null,
+							'limit' => null,
+							'exclusive' => null,
+							'finder' => null,
+							'counter' => null
+						));
+					}
 
-				if (empty($relation['alias'])) {
-					$relation['alias'] = $relation['class']::meta('name');
-				}
+					$relation = array();
+					if (is_array($value)) {
+						$relation = $value;
+					}
 
-				if (!is_string($key)) {
-					$key = $relation['alias'];
-				}
+					$relation = array_merge($defaults, $relation);
 
-				$bindings[$binding][$key] = $relation;
+					if (!is_string($key) && is_string($value)) {
+						$relation['class'] = $value;
+					} elseif (is_string($key)) {
+						$relation['class'] = $key;
+					}
+
+					if (empty($relation['key'])) {
+						switch($binding) {
+							case 'belongsTo':
+								$relation['key'] = Inflector::underscore($relation['class']) . '_id';
+							break;
+							case 'hasOne':
+							case 'hasMany':
+								$relation['key'] = Inflector::underscore($modelName) . '_id';
+							break;
+						}
+					}
+
+					if (strpos($relation['class'], '\\') === false) {
+						$relation['class'] = $ns($relation['class']);
+					}
+
+					if (empty($relation['alias'])) {
+						$relation['alias'] = $relation['class']::meta('name');
+					}
+
+					if (!is_string($key)) {
+						$key = $relation['alias'];
+					}
+
+					if (empty($relation['fieldName'])) {
+						$relation['fieldName'] = $relation['class']::meta('name');
+						$relation['fieldName'] = strtolower($relation['fieldName'][0]).substr($relation['fieldName'], 1);
+					}
+
+					$bindings[$binding][$key] = $relation;
+				}
 			}
+			self::$_bindings[$className] = $bindings;
 		}
-		return $bindings;
+		return !empty($type) ? self::$_bindings[$className][$type] : self::$_bindings[$className];
 	}
 }
 

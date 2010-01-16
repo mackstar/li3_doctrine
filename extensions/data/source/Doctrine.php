@@ -9,6 +9,7 @@
 namespace li3_doctrine\extensions\data\source;
 
 use \li3_doctrine\extensions\doctrine\mapper\ModelDriver;
+use \lithium\util\Set;
 use \Doctrine\Common\EventManager;
 use \Doctrine\Common\Cache\ArrayCache;
 use \Doctrine\ORM\Configuration;
@@ -238,7 +239,26 @@ class Doctrine extends \lithium\data\source\Database {
 	 *
 	 */
 	public function fields($fields, $query) {
-		return $this->columns($query);
+		$columns = $this->columns($query);
+		if (!empty($columns)) {
+			foreach($columns as $key => $fields) {
+				$className = is_string($key) ? $key : $query->model();
+				$belongsTo = ModelDriver::bindings($className, 'belongsTo');
+				$belongsToFields = !empty($belongsTo) ?
+					Set::combine(array_values($belongsTo), '/key', '/fieldName') :
+					array();
+
+				foreach($fields as $i => $field) {
+					if (!empty($belongsToFields[$field])) {
+						unset($fields[$i]);
+						$fields[] = $belongsToFields[$field];
+					}
+				}
+
+				$columns[$key] = array_unique($fields);
+			}
+		}
+		return $columns;
 	}
 
 	/**

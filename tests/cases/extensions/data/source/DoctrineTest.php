@@ -118,9 +118,10 @@ class DoctrineTest extends \lithium\test\Unit {
 		if (preg_match($pattern, $result, $matches)) {
 			$result = explode(',', preg_replace('/\s+/', '', $matches[1]));
 			$expected = array();
-			foreach(array_keys(MockDoctrinePost::schema()) as $field) {
+			foreach(array_diff(array_keys(MockDoctrinePost::schema()), array('author_id')) as $field) {
 				$expected[] = MockDoctrinePost::meta('name').'.'.$field;
 			}
+			$expected[] = MockDoctrinePost::meta('name').'.'.'mockDoctrineAuthor';
 			sort($result);
 			sort($expected);
 			$this->assertEqual($expected, $result);
@@ -209,7 +210,7 @@ class DoctrineTest extends \lithium\test\Unit {
 		$result = $this->doctrine->read($query, array('model'=>$query->model()));
 		$expected = array(
 			'id' => 1,
-			'author_id' => 1,
+			'mockDoctrineAuthor' => 1,
 			'title' => 'First post',
 			'body' => 'This is the body for the first post',
 			'created' => new \DateTime('2010-01-02 17:06:04'),
@@ -217,7 +218,7 @@ class DoctrineTest extends \lithium\test\Unit {
 		);
 		$this->assertTrue(!empty($result));
 		$this->assertEqual(1, count($result));
-		$this->assertEqual($expected, $this->_toArray($result[0]));
+		$this->assertEqual($expected, $this->_toArray($result[0], array_keys($expected)));
 	}
 
 	public function testUpdate() {
@@ -240,10 +241,10 @@ class DoctrineTest extends \lithium\test\Unit {
 		return '/^' . $sql . '$/i';
 	}
 
-	protected function _toArray($model) {
-		$schema = $model->schema();
+	protected function _toArray($model, $columns = array()) {
+		$columns = !empty($columns) ? $columns : array_keys($model->schema());
 		$row = array();
-		foreach(array_keys($schema) as $field) {
+		foreach($columns as $field) {
 			$row[$field] = $model->$field;
 		}
 		return $row;
