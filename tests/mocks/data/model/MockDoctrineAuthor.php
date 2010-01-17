@@ -12,10 +12,17 @@ namespace li3_doctrine\tests\mocks\data\model;
  *
  */
 class MockDoctrineAuthor extends \lithium\data\Model {
+	public $hasMany = array(
+		'MockDoctrinePost' => array('key' => 'author_id')
+	);
 	protected $_meta = array(
 		'source' => 'authors',
 		'key' => 'id',
-		'connection' => 'doctrineTest'
+		'connection' => 'doctrineTest',
+		'name' => null,
+		'title' => null,
+		'class' => null,
+		'initialized' => false
 	);
 
 	protected $_schema = array(

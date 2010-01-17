@@ -8,7 +8,9 @@
 
 namespace li3_doctrine\tests\cases\extensions\doctrine\mapper;
 
+use \lithium\analysis\Logger;
 use \lithium\data\Connections;
+use \li3_doctrine\tests\mocks\analysis\MockLoggerAdapter;
 use \li3_doctrine\tests\mocks\data\model\MockDoctrinePost;
 use \li3_doctrine\tests\mocks\data\model\MockDoctrineNoSchemaPost;
 
@@ -24,6 +26,8 @@ class ModelDriverTest extends \lithium\test\Unit {
 			));
 		}
 
+		Logger::config(array('default' => array('adapter' => new MockLoggerAdapter())));
+
 		$connection = Connections::get('doctrineTest');
 
 		$this->post = new MockDoctrinePost();
@@ -34,6 +38,7 @@ class ModelDriverTest extends \lithium\test\Unit {
 	public function tearDown() {
 		unset($this->post);
 		unset($this->noSchemaPost);
+		Logger::reset();
 	}
 
 	public function testMetadata() {
@@ -83,16 +88,26 @@ class ModelDriverTest extends \lithium\test\Unit {
 		$this->assertFalse($associations['mockDoctrineComment']->hasCascades());
 		$this->assertEqual('li3_doctrine\tests\mocks\data\model\MockDoctrinePost', $associations['mockDoctrineComment']->getSourceEntityName());
 		$this->assertEqual('li3_doctrine\tests\mocks\data\model\MockDoctrineComment', $associations['mockDoctrineComment']->getTargetEntityName());
-		$this->assertEqual('post_id', $associations['mockDoctrineComment']->getMappedByFieldName());
+		$this->assertEqual('mockDoctrinePost', $associations['mockDoctrineComment']->getMappedByFieldName());
 
 		$this->assertTrue($associations['mockDoctrineExcerpt']->isOneToOne());
 		$this->assertTrue($associations['mockDoctrineExcerpt']->isOwningSide());
 		$this->assertTrue($associations['mockDoctrineExcerpt']->hasCascades());
 		$this->assertEqual('li3_doctrine\tests\mocks\data\model\MockDoctrinePost', $associations['mockDoctrineExcerpt']->getSourceEntityName());
 		$this->assertEqual('li3_doctrine\tests\mocks\data\model\MockDoctrineExcerpt', $associations['mockDoctrineExcerpt']->getTargetEntityName());
-		//$this->assertEqual('post_id', $associations['mockDoctrineExcerpt']->getMappedByFieldName());
+		$this->assertEqual('mockDoctrinePost', $associations['mockDoctrineExcerpt']->getMappedByFieldName());
 
-		//$post = MockDoctrinePost::find('first', array('conditions' => array('id' => 1)));
+		/*
+		$this->datasource->applyFilter('read', function($self, $params, $chain) {
+			$doctrineQuery = $chain->next($self, $params, $chain);
+			$model = $params['options']['model']::meta('name');
+			//$doctrineQuery->innerJoin("{$model}.mockDoctrineAuthor", "a", \Doctrine\ORM\Query\Expr\Join::ON, "a.id = {$model}.mockDoctrineAuthor");
+			return $doctrineQuery;
+		});
+
+		$post = MockDoctrinePost::find('first', array('conditions' => array('id' => 1)));
+		var_dump(MockLoggerAdapter::$lines);
+		*/
 		//var_dump($post->mockDoctrineAuthor);
 		//var_dump($post->mockDoctrineExcerpt);
 		//var_dump($post->mockDoctrineComment);

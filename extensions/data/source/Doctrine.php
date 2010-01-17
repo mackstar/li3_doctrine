@@ -8,6 +8,7 @@
 
 namespace li3_doctrine\extensions\data\source;
 
+use \li3_doctrine\extensions\doctrine\logger\SqlLogger;
 use \li3_doctrine\extensions\doctrine\mapper\ModelDriver;
 use \lithium\util\Set;
 use \Doctrine\Common\EventManager;
@@ -44,6 +45,9 @@ class Doctrine extends \lithium\data\source\Database {
 		$configuration->setProxyDir(LITHIUM_APP_PATH . '/models');
 		$configuration->setProxyNamespace('\app\models');
 		$configuration->setAutoGenerateProxyClasses(true);
+		$configuration->setMetadataCacheImpl(new ArrayCache());
+		$configuration->setMetadataDriverImpl(new ModelDriver());
+		$configuration->setSqlLogger(new SqlLogger());
 
 		if (isset($config['eventManager'])) {
 			$eventManager = $config['eventManager'];
@@ -51,9 +55,6 @@ class Doctrine extends \lithium\data\source\Database {
 		} else {
 			$eventManager = new EventManager();
 		}
-
-		$configuration->setMetadataCacheImpl(new ArrayCache());
-		$configuration->setMetadataDriverImpl(new ModelDriver());
 
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
 		$this->_sm = $this->_em->getConnection()->getSchemaManager();
@@ -111,8 +112,22 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
+	public function setEntityManager($em) {
+		$this->_em = $em;
+	}
+
+	/**
+	 *
+	 */
 	public function getSchemaManager() {
 		return $this->_sm;
+	}
+
+	/**
+	 *
+	 */
+	public function setSchemaManager($sm) {
+		$this->_sm = $sm;
 	}
 
 	/**
@@ -168,7 +183,7 @@ class Doctrine extends \lithium\data\source\Database {
 	 */
 	public function read($query, $options) {
 		$query = $query->export($this);
-		$query = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
+		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
 			extract($params);
 			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
 			$doctrineQuery->from($options['model'], $options['model']::meta('name'));
@@ -204,13 +219,14 @@ class Doctrine extends \lithium\data\source\Database {
 				}
 			}
 
-			return $doctrineQuery->getQuery();
+			return $doctrineQuery;
 		});
 
-		if (!isset($query)) {
+		if (!isset($doctrineQuery)) {
 			return null;
 		}
 
+		$query = $doctrineQuery->getQuery();
 		$query->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
 		return $query->getResult();
 	}
@@ -230,9 +246,9 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function conditions($conditions, $query) {
-		$model = $query->model();
-		return $this->_parseConditions($query->conditions(), array('alias'=>$model::meta('name')));
+	public function conditions($conditions, $context, $options = array()) {
+		$model = $context->model();
+		return $this->_parseConditions($context->conditions(), array('alias'=>$model::meta('name')));
 	}
 
 	/**

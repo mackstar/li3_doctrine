@@ -15,7 +15,11 @@ class MockDoctrineNoSchemaPost extends \lithium\data\Model {
 	protected $_meta = array(
 		'source' => 'posts',
 		'key' => 'id',
-		'connection' => 'doctrineTest'
+		'connection' => 'doctrineTest',
+		'name' => null,
+		'title' => null,
+		'class' => null,
+		'initialized' => false
 	);
 	public function connection() {
 		return $this->_connection();

@@ -30,7 +30,6 @@ class ModelDriver implements Driver {
 		if (!($metadata->reflClass instanceof SchemaReflection)) {
 			$metadata->reflClass = new SchemaReflection($metadata->getClassName());
 		}
-
 		$metadata->primaryTable['name'] = $className::meta('source');
 		$primaryKey = $className::meta('key');
 
@@ -56,18 +55,11 @@ class ModelDriver implements Driver {
 						);
 					}
 
-					switch($type) {
-						//case 'hasOne':
-						case 'hasMany':
-							$mapping['mappedBy'] = $relation['key'];
-						break;
-						case 'belongsTo':
-							$mapping['mappedBy'] = $relation['class']::meta('key');
-						break;
+					if (in_array($type, array('belongsTo', 'hasOne', 'hasMany'))) {
+						$mapping['mappedBy'] = self::_fieldName($mapping);
 					}
 
 					$relations[$type][$key] = $mapping;
-					//$bindings[$type][$key] = $relation;
 				}
 			}
 		}
@@ -81,11 +73,11 @@ class ModelDriver implements Driver {
 			array();
 
 		foreach ($schema as $field => $column) {
-			$mapping = array(
+			$mapping = array_merge(array(
 				'id' => $field == $primaryKey,
 				'fieldName' => !empty($belongsToFields[$field]) ? $belongsToFields[$field] : $field,
 				'columnName' => $field
-			) + (array) $column;
+			), (array) $column);
 
 			$metadata->mapField($mapping);
 
@@ -101,7 +93,7 @@ class ModelDriver implements Driver {
 		}
 	}
 
-	public function isTransient($class) {
+	public function isTransient($className) {
 		return true;
 	}
 
@@ -194,8 +186,7 @@ class ModelDriver implements Driver {
 					}
 
 					if (empty($relation['fieldName'])) {
-						$relation['fieldName'] = $relation['class']::meta('name');
-						$relation['fieldName'] = strtolower($relation['fieldName'][0]).substr($relation['fieldName'], 1);
+						$relation['fieldName'] = self::_fieldName($relation['class']::meta('name'));
 					}
 
 					$bindings[$binding][$key] = $relation;
@@ -204,6 +195,16 @@ class ModelDriver implements Driver {
 			self::$_bindings[$className] = $bindings;
 		}
 		return !empty($type) ? self::$_bindings[$className][$type] : self::$_bindings[$className];
+	}
+
+	protected static function _fieldName($className) {
+		if (is_array($className)) {
+			$options = array_merge(array('fieldName'=>null, 'sourceEntity'=>null, 'targetEntity'=>null), $className);
+			if (!empty($options['fieldName'])) {
+				$className = substr($options['sourceEntity'], strrpos($options['sourceEntity'], '\\') + 1);
+			}
+		}
+		return strtolower($className[0]).substr($className, 1);
 	}
 }
 

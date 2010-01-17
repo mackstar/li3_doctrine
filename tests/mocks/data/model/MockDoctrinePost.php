@@ -25,7 +25,11 @@ class MockDoctrinePost extends \lithium\data\Model {
 	protected $_meta = array(
 		'source' => 'posts',
 		'key' => 'id',
-		'connection' => 'doctrineTest'
+		'connection' => 'doctrineTest',
+		'name' => null,
+		'title' => null,
+		'class' => null,
+		'initialized' => false
 	);
 
 	protected $_schema = array(
