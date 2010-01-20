@@ -255,7 +255,7 @@ class Doctrine extends \lithium\data\source\Database {
 	 *
 	 */
 	public function fields($fields, $query) {
-		$columns = $this->columns($query);
+		$columns = $this->schema($query);
 		if (!empty($columns)) {
 			foreach($columns as $key => $fields) {
 				$className = is_string($key) ? $key : $query->model();
