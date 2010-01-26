@@ -33,7 +33,7 @@ class ModelDriver implements Driver {
 		$metadata->primaryTable['name'] = $className::meta('source');
 		$primaryKey = $className::meta('key');
 
-		$bindings = self::bindings($className);
+		$bindings = static::bindings($className);
 		$relations = array();
 		if (!empty($bindings)) {
 			foreach($bindings as $type => $set) {
@@ -56,7 +56,7 @@ class ModelDriver implements Driver {
 					}
 
 					if (in_array($type, array('belongsTo', 'hasOne', 'hasMany'))) {
-						$mapping['mappedBy'] = self::_fieldName($mapping);
+						$mapping['mappedBy'] = static::_fieldName($mapping);
 					}
 
 					$relations[$type][$key] = $mapping;
@@ -88,7 +88,7 @@ class ModelDriver implements Driver {
 
 		foreach($relations as $type => $set) {
 			foreach($set as $key => $mapping) {
-				$metadata->{self::$_bindingMapping[$type]}($mapping);
+				$metadata->{static::$_bindingMapping[$type]}($mapping);
 			}
 		}
 	}
@@ -108,7 +108,7 @@ class ModelDriver implements Driver {
 	}
 
 	public static function bindings($className, $type = null) {
-		if (empty(self::$_bindings[$className])) {
+		if (empty(static::$_bindings[$className])) {
 			$ns = function($class) use ($className) {
 				static $namespace;
 				$namespace = $namespace ?: preg_replace('/\w+$/', '', $className);
@@ -117,7 +117,7 @@ class ModelDriver implements Driver {
 
 			$modelName = $className::meta('name');
 			$bindings = array();
-			foreach(self::$_bindingMapping as $binding => $method) {
+			foreach(static::$_bindingMapping as $binding => $method) {
 				$relations = $className::relations($binding);
 				if (empty($relations)) {
 					$bindings[$binding] = array();
@@ -186,15 +186,15 @@ class ModelDriver implements Driver {
 					}
 
 					if (empty($relation['fieldName'])) {
-						$relation['fieldName'] = self::_fieldName($relation['class']::meta('name'));
+						$relation['fieldName'] = static::_fieldName($relation['class']::meta('name'));
 					}
 
 					$bindings[$binding][$key] = $relation;
 				}
 			}
-			self::$_bindings[$className] = $bindings;
+			static::$_bindings[$className] = $bindings;
 		}
-		return !empty($type) ? self::$_bindings[$className][$type] : self::$_bindings[$className];
+		return !empty($type) ? static::$_bindings[$className][$type] : static::$_bindings[$className];
 	}
 
 	protected static function _fieldName($className) {
