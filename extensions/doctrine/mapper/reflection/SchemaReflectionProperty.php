@@ -34,6 +34,13 @@ class SchemaReflectionProperty extends \ReflectionProperty {
 		}
 	}
 
+	public function getValue($entity = null) {
+		if (is_object($entity)) {
+			return false;
+		}
+		return parent::getValue($entity);
+	}
+
 	public function getAccessible() {
 		if (isset($this->_accessible)) {
 			return $this->_accessible;

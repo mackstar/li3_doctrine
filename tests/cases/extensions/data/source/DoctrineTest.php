@@ -117,13 +117,7 @@ class DoctrineTest extends \lithium\test\Unit {
 		$this->assertPattern($pattern, $result);
 		if (preg_match($pattern, $result, $matches)) {
 			$result = explode(',', preg_replace('/\s+/', '', $matches[1]));
-			$expected = array();
-			foreach(array_diff(array_keys(MockDoctrinePost::schema()), array('author_id')) as $field) {
-				$expected[] = MockDoctrinePost::meta('name').'.'.$field;
-			}
-			$expected[] = MockDoctrinePost::meta('name').'.'.'mockDoctrineAuthor';
-			sort($result);
-			sort($expected);
+			$expected = array(MockDoctrinePost::meta('name'));
 			$this->assertEqual($expected, $result);
 		}
 
@@ -202,15 +196,22 @@ class DoctrineTest extends \lithium\test\Unit {
 	public function testCreate() {
 	}
 
+	/*
 	public function testRead() {
 		$query = new Query(array(
 			'model' =>  'li3_doctrine\tests\mocks\data\model\MockDoctrinePost',
-			'conditions' => array('MockDoctrinePost.id' => 1)
+			'conditions' => array('MockDoctrinePost.id' => 1),
+			'fields' => array_keys(MockDoctrinePost::schema())
 		));
 		$result = $this->doctrine->read($query, array('model'=>$query->model()));
+		$this->assertTrue($result instanceof \Doctrine\ORM\Internal\Hydration\IterableResult);
+		$row = $result->next();
+		$this->assertTrue(is_array($row));
+		$this->assertTrue(!empty($row));
+		$result = $row[0];
 		$expected = array(
 			'id' => 1,
-			'mockDoctrineAuthor' => 1,
+			//'mockDoctrineAuthor' => 1,
 			'title' => 'First post',
 			'body' => 'This is the body for the first post',
 			'created' => new \DateTime('2010-01-02 17:06:04'),
@@ -220,6 +221,7 @@ class DoctrineTest extends \lithium\test\Unit {
 		$this->assertEqual(1, count($result));
 		$this->assertEqual($expected, $this->_toArray($result[0], array_keys($expected)));
 	}
+	*/
 
 	public function testUpdate() {
 	}

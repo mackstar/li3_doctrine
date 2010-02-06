@@ -154,16 +154,31 @@ class Doctrine extends \lithium\data\source\Database {
 	}
 
 	public function result($type, $resource, $context) {
-		if ($type == 'next') {
-			foreach($resource as $i => $object) {
-				$context->offsetSet($i, $object);
-			}
+		if (!is_object($resource)) {
+			return null;
 		}
+
+		$result = null;
+		switch ($type) {
+			case 'next':
+				$row = $resource->next();
+				if ($row !== false) {
+					$result = $row[0];
+					$this->getEntityManager()->detach($row[0]);
+				}
+			break;
+			case 'close':
+				unset($resource);
+			break;
+			default:
+				$result = parent::result($type, $resource, $context);
+			break;
+		}
+		return $result;
 	}
 
 	public function error() {
 	}
-
 
 	/**
 	 *
@@ -196,13 +211,17 @@ class Doctrine extends \lithium\data\source\Database {
 			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
 			$doctrineQuery->from($options['model'], $options['model']::meta('name'));
 
-			foreach($query['fields'] as $scope => $fields) {
-				if (!is_string($scope)) {
-					$scope = $query['model'];
+			if (!empty($query['fields'])) {
+				foreach($query['fields'] as $scope => $fields) {
+					if (!is_string($scope)) {
+						$scope = $query['model'];
+					}
+					foreach($fields as $field) {
+						$doctrineQuery->addSelect("{$scope::meta('name')}.{$field}");
+					}
 				}
-				foreach($fields as $field) {
-					$doctrineQuery->addSelect("{$scope::meta('name')}.{$field}");
-				}
+			} else {
+				$doctrineQuery->addSelect($options['model']::meta('name'));
 			}
 
 			if (isset($query['conditions'])) {
@@ -234,9 +253,11 @@ class Doctrine extends \lithium\data\source\Database {
 			return null;
 		}
 
-		$query = $doctrineQuery->getQuery();
-		$query->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
-		return $query->getResult();
+		$doctrineQuery = $doctrineQuery->getQuery();
+		if (!empty($query['fields'])) {
+			$doctrineQuery->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
+		}
+		return $doctrineQuery->iterate();
 	}
 
 	/**
@@ -263,23 +284,26 @@ class Doctrine extends \lithium\data\source\Database {
 	 *
 	 */
 	public function fields($fields, $query) {
-		$columns = $this->schema($query);
-		if (!empty($columns)) {
-			foreach($columns as $key => $fields) {
-				$className = is_string($key) ? $key : $query->model();
-				$belongsTo = ModelDriver::bindings($className, 'belongsTo');
-				$belongsToFields = !empty($belongsTo) ?
-					Set::combine(array_values($belongsTo), '/key', '/fieldName') :
-					array();
-
-				foreach($fields as $i => $field) {
-					if (!empty($belongsToFields[$field])) {
-						unset($fields[$i]);
-						$fields[] = $belongsToFields[$field];
+		$columns = array();
+		if (!empty($fields)) {
+			$columns = $this->schema($query);
+			if (!empty($columns)) {
+				$belongsToFields = array();
+				foreach($columns as $key => $currentFields) {
+					$className = is_string($key) ? $key : $query->model();
+					$belongsTo = ModelDriver::bindings($className, 'belongsTo');
+					$belongsToFields = !empty($belongsTo) ?
+						Set::combine(array_values($belongsTo), '/key', '/fieldName') :
+						array();
+					foreach($fields as $i => $field) {
+						if (!empty($belongsToFields[$field])) {
+							unset($fields[$i]);
+							$fields[] = $belongsToFields[$field];
+						}
 					}
-				}
 
-				$columns[$key] = array_unique($fields);
+					$columns[$key] = array_unique($fields);
+				}
 			}
 		}
 		return $columns;
