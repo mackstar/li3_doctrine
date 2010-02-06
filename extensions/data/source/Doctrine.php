@@ -56,6 +56,14 @@ class Doctrine extends \lithium\data\source\Database {
 			$eventManager = new EventManager();
 		}
 
+		$mapping = array('adapter' => 'driver', 'login'=>'user', 'database'=>'dbname');
+		foreach($mapping as $key => $setting) {
+			if (!array_key_exists($setting, $config) && array_key_exists($key, $config)) {
+				$config[$setting] = $config[$key];
+			}
+		}
+		$config = array_diff_key($config, $mapping);
+
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
 		$this->_sm = $this->_em->getConnection()->getSchemaManager();
 		parent::__construct($config);
