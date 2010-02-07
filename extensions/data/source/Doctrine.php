@@ -42,8 +42,13 @@ class Doctrine extends \lithium\data\source\Database {
 			$configuration = new Configuration();
 		}
 
-		$configuration->setProxyDir(LITHIUM_APP_PATH . '/models');
-		$configuration->setProxyNamespace('\app\models');
+		$config = array_merge(array(
+			'proxyDir' => LITHIUM_APP_PATH . '/models',
+			'proxyNamespace' => '\app\models'
+		), $config);
+
+		$configuration->setProxyDir($config['proxyDir']);
+		$configuration->setProxyNamespace($config['proxyNamespace']);
 		$configuration->setAutoGenerateProxyClasses(true);
 		$configuration->setMetadataCacheImpl(new ArrayCache());
 		$configuration->setMetadataDriverImpl(new ModelDriver());
