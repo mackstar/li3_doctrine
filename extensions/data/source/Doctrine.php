@@ -44,7 +44,7 @@ class Doctrine extends \lithium\data\source\Database {
 
 		$config = array_merge(array(
 			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'models',
-			'proxyNamespace' => '\app\models'
+			'proxyNamespace' => 'app\models'
 		), $config);
 
 		$configuration->setProxyDir($config['proxyDir']);
