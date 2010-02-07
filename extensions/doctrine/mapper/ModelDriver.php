@@ -39,23 +39,25 @@ class ModelDriver implements Driver {
 			foreach($bindings as $type => $set) {
 				foreach($set as $key => $relation) {
 					$mapping = array(
-						'fetch' => \Doctrine\ORM\Mapping\AssociationMapping::FETCH_EAGER,
+						//'fetch' => \Doctrine\ORM\Mapping\AssociationMapping::FETCH_EAGER,
 						'fieldName' => $relation['fieldName'],
 						'sourceEntity' => $className,
 						'targetEntity' => $relation['class'],
 						'mappedBy' => null,
-						'cascade' => !empty($relation['dependent']) ? array('remove') : array()
+						'cascade' => !empty($relation['dependent']) ? array('remove') : array(),
+						'optional' => ($type != 'belongsTo')
 					);
 
-					if (in_array($type, array('hasOne'))) {
+					if (in_array($type, array('belongsTo', /*'hasOne',*/ 'hasMany'))) {
+						$inverse = ($type == 'belongsTo');
 						$mapping['joinColumns'][] = array(
-							'fieldName' => $type == 'hasOne' ? $relation['key'] : $relation['fieldName'],
-							'name' => $type == 'hasOne' ? $relation['fieldName'] : $relation['key'],
+							'fieldName' => !$inverse ? $relation['key'] : $relation['fieldName'],
+							'name' => !$inverse ? $relation['fieldName'] : $relation['key'],
 							'referencedColumnName' => $relation['class']::meta('key')
 						);
 					}
 
-					if (in_array($type, array('belongsTo', 'hasOne', 'hasMany'))) {
+					if (in_array($type, array(/*'belongsTo',*/ 'hasOne', 'hasMany'))) {
 						$mapping['mappedBy'] = static::_fieldName($mapping);
 					}
 
@@ -65,6 +67,7 @@ class ModelDriver implements Driver {
 		}
 
 		$schema = (array) $className::schema();
+
 		$metadata->reflClass->setRelations($relations);
 		$metadata->reflClass->setSchema($schema);
 
@@ -86,9 +89,12 @@ class ModelDriver implements Driver {
 			}
 		}
 
+		//echo '<hr />';var_dump($relations); echo '<hr/>';
 		foreach($relations as $type => $set) {
 			foreach($set as $key => $mapping) {
 				$metadata->{static::$_bindingMapping[$type]}($mapping);
+				$mapping = $metadata->associationMappings[$mapping['fieldName']];
+				//var_dump($className::meta('name') . '::' . $type . '.' . $key, $mapping);
 			}
 		}
 	}
@@ -199,11 +205,11 @@ class ModelDriver implements Driver {
 
 	protected static function _fieldName($className) {
 		if (is_array($className)) {
-			$options = array_merge(array('fieldName'=>null, 'sourceEntity'=>null, 'targetEntity'=>null), $className);
-			if (!empty($options['fieldName'])) {
-				$className = substr($options['sourceEntity'], strrpos($options['sourceEntity'], '\\') + 1);
-			}
+			$className = $className['sourceEntity'];
 		}
+		$className = strpos($className, '\\') !== false ?
+			substr($className, strrpos($className, '\\') + 1) :
+			$className;
 		return strtolower($className[0]).substr($className, 1);
 	}
 }

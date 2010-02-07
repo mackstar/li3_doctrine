@@ -12,6 +12,10 @@ namespace li3_doctrine\tests\mocks\data\model;
  *
  */
 class MockDoctrineExcerpt extends \lithium\data\Model {
+	public $belongsTo = array(
+		'MockDoctrinePost' => array('key' => 'post_id')
+	);
+
 	protected $_meta = array(
 		'source' => 'excerpts',
 		'key' => 'id',

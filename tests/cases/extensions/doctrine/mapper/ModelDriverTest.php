@@ -110,15 +110,18 @@ class ModelDriverTest extends \lithium\test\Unit {
 		$post = MockDoctrinePost::find('first', array('fields' => array('id', 'title'), 'conditions' => array('id' => 1)));
 		var_dump(\lithium\util\Set::extract(MockLoggerAdapter::$lines, '/message'));
 		var_dump($post);
+		*/
 
-		$post = MockDoctrinePost::find('first', array('conditions' => array('id' => 1)));
+		/*
+		$result = MockDoctrinePost::find('all', array('conditions' => array('id' => 1)));
 		var_dump(\lithium\util\Set::extract(MockLoggerAdapter::$lines, '/message'));
+		$post = $result->next();
 		var_dump($post);
+		*/
 
 		//var_dump($post->mockDoctrineAuthor);
 		//var_dump($post->mockDoctrineExcerpt);
 		//var_dump($post->mockDoctrineComment);
-		*/
 	}
 
 	public function testEntities() {
