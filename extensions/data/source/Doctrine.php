@@ -192,9 +192,16 @@ class Doctrine extends \lithium\data\source\Database {
 	public function describe($entity, $meta = array()) {
 		$schema = array();
 		$columns = $this->getSchemaManager()->listTableColumns($entity);
+		$mapping = array();
 		foreach($columns as $field => $column) {
-			$column['type'] = strtolower((string) $column['type']);
-			$schema[$field] = $column;
+			$class = get_class($column->getType());
+			if (empty($mapping[$class])) {
+				$type = substr($class, strrpos($class, '\\') + 1);
+				$mapping[$class] = strtolower(preg_replace('/Type$/', '', $type));
+			}
+			$schema[$field] = array_merge($column->toArray(), array(
+				'type' => $mapping[$class]
+			));
 		}
 
 		return $schema;
