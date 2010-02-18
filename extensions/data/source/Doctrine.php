@@ -13,6 +13,7 @@ use \li3_doctrine\extensions\doctrine\mapper\ModelDriver;
 use \lithium\util\Set;
 use \Doctrine\Common\EventManager;
 use \Doctrine\Common\Cache\ArrayCache;
+use \Doctrine\DBAL\Schema\AbstractSchemaManager;
 use \Doctrine\ORM\Configuration;
 use \Doctrine\ORM\EntityManager;
 use \Doctrine\ORM\Query;
@@ -125,7 +126,7 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function setEntityManager($em) {
+	public function setEntityManager(EntityManager $em) {
 		$this->_em = $em;
 	}
 
@@ -139,7 +140,7 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function setSchemaManager($sm) {
+	public function setSchemaManager(AbstractSchemaManager $sm) {
 		$this->_sm = $sm;
 	}
 
@@ -282,7 +283,7 @@ class Doctrine extends \lithium\data\source\Database {
 	 */
 	public function conditions($conditions, $context, $options = array()) {
 		$model = $context->model();
-		return $this->_parseConditions($context->conditions(), array('alias'=>$model::meta('name')));
+		return $this->_parseConditions((array) $context->conditions(), array('alias'=>$model::meta('name')));
 	}
 
 	/**
@@ -353,7 +354,7 @@ class Doctrine extends \lithium\data\source\Database {
 		return $limit ?: array();
 	}
 
-	protected function _parseConditions($conditions, $options) {
+	protected function _parseConditions(array $conditions, array $options = array()) {
 		$query = $this->getEntityManager()->createQueryBuilder();
 		if (empty($conditions)) {
 			return null;
