@@ -103,7 +103,7 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function isConnected($options = array()) {
+	public function isConnected(array $options = array()) {
 		$defaults = array('autoConnect' => false);
 		$options += $defaults;
 		$connected = $this->getEntityManager()->getConnection()->isConnected();
@@ -202,14 +202,14 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function create($query, $options) {
+	public function create($query, array $options = array()) {
 	}
 
 	/**
 	 *
 	 * @return RecordSet
 	 */
-	public function read($query, $options) {
+	public function read($query, array $options = array()) {
 		$query = $query->export($this);
 		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
 			extract($params);
@@ -268,13 +268,13 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function update($query, $options) {
+	public function update($query, array $options = array()) {
 	}
 
 	/**
 	 *
 	 */
-	public function delete($query, $options) {
+	public function delete($query, array $options = array()) {
 	}
 
 	/**
