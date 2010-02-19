@@ -31,15 +31,15 @@ class ModelDriver implements Driver {
 			$metadata->reflClass = new SchemaReflection($metadata->getClassName());
 		}
 		$metadata->primaryTable['name'] = $className::meta('source');
-		$primaryKey = $className::meta('key');
 
+		$primaryKey = $className::meta('key');
 		$bindings = static::bindings($className);
 		$relations = array();
 		if (!empty($bindings)) {
 			foreach($bindings as $type => $set) {
 				foreach($set as $key => $relation) {
 					$mapping = array(
-						//'fetch' => \Doctrine\ORM\Mapping\AssociationMapping::FETCH_EAGER,
+						'fetch' => \Doctrine\ORM\Mapping\AssociationMapping::FETCH_EAGER,
 						'fieldName' => $relation['fieldName'],
 						'sourceEntity' => $className,
 						'targetEntity' => $relation['class'],
@@ -48,7 +48,7 @@ class ModelDriver implements Driver {
 						'optional' => ($type != 'belongsTo')
 					);
 
-					if (in_array($type, array('belongsTo', /*'hasOne',*/ 'hasMany'))) {
+					if (in_array($type, array(/*'belongsTo',*/ 'hasOne', 'hasMany'))) {
 						$inverse = ($type == 'belongsTo');
 						$mapping['joinColumns'][] = array(
 							'fieldName' => !$inverse ? $relation['key'] : $relation['fieldName'],
@@ -57,7 +57,7 @@ class ModelDriver implements Driver {
 						);
 					}
 
-					if (in_array($type, array(/*'belongsTo',*/ 'hasOne', 'hasMany'))) {
+					if (in_array($type, array('belongsTo', 'hasOne', 'hasMany'))) {
 						$mapping['mappedBy'] = static::_fieldName($mapping);
 					}
 
@@ -89,12 +89,10 @@ class ModelDriver implements Driver {
 			}
 		}
 
-		//echo '<hr />';var_dump($relations); echo '<hr/>';
 		foreach($relations as $type => $set) {
 			foreach($set as $key => $mapping) {
 				$metadata->{static::$_bindingMapping[$type]}($mapping);
 				$mapping = $metadata->associationMappings[$mapping['fieldName']];
-				//var_dump($className::meta('name') . '::' . $type . '.' . $key, $mapping);
 			}
 		}
 	}

@@ -14,6 +14,7 @@ use \lithium\util\Set;
 use \Doctrine\Common\EventManager;
 use \Doctrine\Common\Cache\ArrayCache;
 use \Doctrine\DBAL\Schema\AbstractSchemaManager;
+use \Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use \Doctrine\ORM\Configuration;
 use \Doctrine\ORM\EntityManager;
 use \Doctrine\ORM\Query;
@@ -45,14 +46,17 @@ class Doctrine extends \lithium\data\source\Database {
 
 		$config = array_merge(array(
 			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'models',
-			'proxyNamespace' => 'app\models'
+			'proxyNamespace' => 'app\models',
+			'useModelDriver' => false
 		), $config);
 
 		$configuration->setProxyDir($config['proxyDir']);
 		$configuration->setProxyNamespace($config['proxyNamespace']);
 		$configuration->setAutoGenerateProxyClasses(true);
 		$configuration->setMetadataCacheImpl(new ArrayCache());
-		$configuration->setMetadataDriverImpl(new ModelDriver());
+		if (!$config['useModelDriver']) {
+			$configuration->setMetadataDriverImpl(new ModelDriver());
+		}
 		$configuration->setSqlLogger(new SqlLogger());
 
 		if (isset($config['eventManager'])) {
@@ -152,8 +156,14 @@ class Doctrine extends \lithium\data\source\Database {
 	 * @filter This method can be filtered.
 	 */
 	public function entities($class = null) {
+		$entities = array();
 		$tables = $this->getSchemaManager()->listTables();
-		return $tables;
+		if (!empty($tables)) {
+			foreach($tables as $table) {
+				$entities[] = $table->getName();
+			}
+		}
+		return $entities;
 	}
 
 	public function encoding($encoding = null) {
@@ -167,10 +177,16 @@ class Doctrine extends \lithium\data\source\Database {
 		$result = null;
 		switch ($type) {
 			case 'next':
-				$row = $resource->next();
-				if ($row !== false) {
-					$result = $row[0];
-					$this->getEntityManager()->detach($row[0]);
+				if ($resource instanceof \Iterator) {
+					$row = $resource->next();
+					if ($row !== false) {
+						$result = $row[0];
+					}
+				} else {
+					$result = $resource;
+				}
+				if (!empty($result)) {
+					$this->getEntityManager()->detach($result);
 				}
 			break;
 			case 'close':
@@ -268,7 +284,14 @@ class Doctrine extends \lithium\data\source\Database {
 
 		$doctrineQuery = $doctrineQuery->getQuery();
 		if (!empty($query['fields'])) {
-			$doctrineQuery->setHint(\Doctrine\ORM\Query::HINT_FORCE_PARTIAL_LOAD, true);
+			$doctrineQuery->setHint($doctrineQuery::HINT_FORCE_PARTIAL_LOAD, true);
+		}
+		//var_dump($doctrineQuery->getSingleResult());
+		//echo '<hr />';
+		/*$r = $doctrineQuery->getResult();
+		var_dump($r[0]->post->title);*/
+		if ($query['limit'] == 1) {
+			return $doctrineQuery->getSingleResult();
 		}
 		return $doctrineQuery->iterate();
 	}
@@ -290,7 +313,7 @@ class Doctrine extends \lithium\data\source\Database {
 	 */
 	public function conditions($conditions, $context, $options = array()) {
 		$model = $context->model();
-		return $this->_parseConditions((array) $context->conditions(), array('alias'=>$model::meta('name')));
+		return $this->_parseConditions((array) $conditions, array('alias'=>$model::meta('name')));
 	}
 
 	/**

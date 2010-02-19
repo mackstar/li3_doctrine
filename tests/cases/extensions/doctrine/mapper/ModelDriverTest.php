@@ -22,7 +22,8 @@ class ModelDriverTest extends \lithium\test\Unit {
 		if (!Connections::get('doctrineTest')) {
 			Connections::add('doctrineTest', 'Doctrine', array(
 				'driver' => 'pdo_sqlite',
-				'path' => ':memory:'
+				'path' => ':memory:',
+				'useModelDriver' => true
 			));
 		}
 
