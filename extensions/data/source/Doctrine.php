@@ -166,9 +166,6 @@ class Doctrine extends \lithium\data\source\Database {
 		return $entities;
 	}
 
-	public function encoding($encoding = null) {
-	}
-
 	public function result($type, $resource, $context) {
 		if (!is_object($resource)) {
 			return null;
@@ -199,9 +196,6 @@ class Doctrine extends \lithium\data\source\Database {
 		return $result;
 	}
 
-	public function error() {
-	}
-
 	/**
 	 *
 	 */
@@ -221,12 +215,6 @@ class Doctrine extends \lithium\data\source\Database {
 		}
 
 		return $schema;
-	}
-
-	/**
-	 *
-	 */
-	public function create($query, array $options = array()) {
 	}
 
 	/**
@@ -294,18 +282,6 @@ class Doctrine extends \lithium\data\source\Database {
 			return $doctrineQuery->getSingleResult();
 		}
 		return $doctrineQuery->iterate();
-	}
-
-	/**
-	 *
-	 */
-	public function update($query, array $options = array()) {
-	}
-
-	/**
-	 *
-	 */
-	public function delete($query, array $options = array()) {
 	}
 
 	/**
@@ -422,6 +398,27 @@ class Doctrine extends \lithium\data\source\Database {
 		}
 
 		return $query->getDqlPart('where');
+	}
+
+	public function create($query, array $options = array()) {
+	}
+
+	public function encoding($encoding = null) {
+	}
+
+	public function error() {
+	}
+
+	public function update($query, array $options = array()) {
+	}
+
+	public function delete($query, array $options = array()) {
+	}
+
+	protected function _execute($query) {
+	}
+
+	protected function _insertId($query) {
 	}
 }
 
