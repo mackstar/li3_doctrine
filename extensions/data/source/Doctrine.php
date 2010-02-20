@@ -222,58 +222,64 @@ class Doctrine extends \lithium\data\source\Database {
 	 * @return RecordSet
 	 */
 	public function read($query, array $options = array()) {
-		$query = $query->export($this);
-		$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
-			extract($params);
-			$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
-			$doctrineQuery->from($options['model'], $options['model']::meta('name'));
+		$doctrineQuery = $query->query();
+		if (!isset($doctrineQuery)) {
+			$query = $query->export($this);
+			$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
+				extract($params);
+				$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
+				$doctrineQuery->from($options['model'], $options['model']::meta('name'));
+
+				if (!empty($query['fields'])) {
+					foreach($query['fields'] as $scope => $fields) {
+						if (!is_string($scope)) {
+							$scope = $query['model'];
+						}
+						foreach($fields as $field) {
+							$doctrineQuery->addSelect("{$scope::meta('name')}.{$field}");
+						}
+					}
+				} else {
+					$doctrineQuery->addSelect($options['model']::meta('name'));
+				}
+
+				if (isset($query['conditions'])) {
+					$doctrineQuery->add('where', $query['conditions']);
+				}
+
+				if (empty($query['offset']) && !empty($query['page'])) {
+					$query['offset'] = ($query['page'] - 1) * $query['limit'];
+				}
+
+				if (!empty($query['offset'])) {
+					$doctrineQuery->setFirstResult($query['offset']);
+				}
+
+				if (!empty($query['limit'])) {
+					$doctrineQuery->setMaxResults($query['limit']);
+				}
+
+				if (!empty($query['order'])) {
+					foreach($query['order'] as $field => $direction) {
+						$doctrineQuery->addOrderBy($field, $direction);
+					}
+				}
+
+				return $doctrineQuery;
+			});
+
+			if (!isset($doctrineQuery)) {
+				return null;
+			}
+
+			$doctrineQuery = $doctrineQuery->getQuery();
 
 			if (!empty($query['fields'])) {
-				foreach($query['fields'] as $scope => $fields) {
-					if (!is_string($scope)) {
-						$scope = $query['model'];
-					}
-					foreach($fields as $field) {
-						$doctrineQuery->addSelect("{$scope::meta('name')}.{$field}");
-					}
-				}
-			} else {
-				$doctrineQuery->addSelect($options['model']::meta('name'));
+				$doctrineQuery->setHint($doctrineQuery::HINT_FORCE_PARTIAL_LOAD, true);
 			}
-
-			if (isset($query['conditions'])) {
-				$doctrineQuery->add('where', $query['conditions']);
-			}
-
-			if (empty($query['offset']) && !empty($query['page'])) {
-				$query['offset'] = ($query['page'] - 1) * $query['limit'];
-			}
-
-			if (!empty($query['offset'])) {
-				$doctrineQuery->setFirstResult($query['offset']);
-			}
-
-			if (!empty($query['limit'])) {
-				$doctrineQuery->setMaxResults($query['limit']);
-			}
-
-			if (!empty($query['order'])) {
-				foreach($query['order'] as $field => $direction) {
-					$doctrineQuery->addOrderBy($field, $direction);
-				}
-			}
-
-			return $doctrineQuery;
-		});
-
-		if (!isset($doctrineQuery)) {
-			return null;
 		}
 
-		$doctrineQuery = $doctrineQuery->getQuery();
-		if (!empty($query['fields'])) {
-			$doctrineQuery->setHint($doctrineQuery::HINT_FORCE_PARTIAL_LOAD, true);
-		}
+
 		//var_dump($doctrineQuery->getSingleResult());
 		//echo '<hr />';
 		/*$r = $doctrineQuery->getResult();
