@@ -293,7 +293,7 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function conditions($conditions, $context, $options = array()) {
+	public function conditions($conditions, $context, array $options = array()) {
 		$model = $context->model();
 		return $this->_parseConditions((array) $conditions, array('alias'=>$model::meta('name')));
 	}

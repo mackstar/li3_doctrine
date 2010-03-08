@@ -30,7 +30,8 @@ class TestDoctrine extends \li3_doctrine\extensions\data\source\Doctrine {
 class DoctrineTest extends \lithium\test\Unit {
 	public function setUp() {
 		if (!Connections::get('doctrineTest')) {
-			Connections::add('doctrineTest', 'Doctrine', array(
+			Connections::add('doctrineTest', array(
+				'type' => 'Doctrine',
 				'driver' => 'pdo_sqlite',
 				'path' => ':memory:'
 			));
