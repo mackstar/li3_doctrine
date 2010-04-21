@@ -20,13 +20,33 @@ use \Doctrine\Common\Cli\CliController;
  */
 class Doctrine extends \lithium\console\Command {
 
+	/**
+	 * Specifies the name of the connection in the `Connections` class that contains your Doctrine
+	 * configuration. Defaults to 'default'.
+	 *
+	 * @var string
+	 */
 	public $connection = 'default';
 
+	/**
+	 * A fully-namespaced class path to the Doctrine CLI printer that should be used for output.
+	 * This setting usually does not need to be configured.
+	 *
+	 * @var string
+	 */
 	public $printer = '\Doctrine\Common\Cli\Printers\NormalPrinter';
 
 	public function run($args = array()) {
 		$args = $this->_config['request']->args;
 		$conn = Connections::get($this->connection);
+
+		if (!$conn || !$conn instanceof \li3_doctrine\extensions\data\source\Doctrine) {
+			$error = "Error: Could not get Doctrine proxy object from Connections, using";
+			$error .= " configuration '{$this->connection}'. Please add the connection or choose";
+			$error .= " an alternate configuration using the `--connection` flag.";
+			$this->error($error);
+			return;
+		}
 
 		$config = new Configuration();
 		$config->setAttribute('em', $conn->getEntityManager());
