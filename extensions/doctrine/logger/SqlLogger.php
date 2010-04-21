@@ -12,7 +12,7 @@ use \lithium\analysis\Logger;
 
 class SqlLogger extends \lithium\core\Object implements \Doctrine\DBAL\Logging\SQLLogger {
 	public function logSQL($sql, array $params = null) {
-		Logger::write('default', $query);
+		Logger::write('default', $sql);
 	}
 }
 
