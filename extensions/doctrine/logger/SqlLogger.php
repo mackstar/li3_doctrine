@@ -10,7 +10,7 @@ namespace li3_doctrine\extensions\doctrine\logger;
 
 use \lithium\analysis\Logger;
 
-class SqlLogger extends \lithium\core\Object implements \Doctrine\DBAL\Logging\SQLLogger {
+class SqlLogger extends \lithium\core\Object {
 	public function logSQL($sql, array $params = null) {
 		Logger::write('default', $sql);
 	}
