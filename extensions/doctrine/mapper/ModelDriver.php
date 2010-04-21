@@ -28,7 +28,7 @@ class ModelDriver implements Driver {
 
 	public function loadMetadataForClass($className, ClassMetadataInfo $metadata) {
 		if (!($metadata->reflClass instanceof SchemaReflection)) {
-			$metadata->reflClass = new SchemaReflection($metadata->getClassName());
+			$metadata->reflClass = new SchemaReflection(get_class($metadata));
 		}
 		$metadata->primaryTable['name'] = $className::meta('source');
 
