@@ -36,6 +36,37 @@ class Doctrine extends \lithium\console\Command {
 	 */
 	public $printer = '\Doctrine\Common\Cli\Printers\NormalPrinter';
 
+	/**
+	 * When installing Doctrine from a remote repository, this is the version that will be checked
+	 * out. This must be a valid SVN tag in the Doctrine repository.
+	 *
+	 * @var string
+	 */
+	public $installVersion = '2.0.0-BETA1';
+
+	/**
+	 * Indicates the SVN command to use when installing Doctrine. Can be set to 'checkout' or
+	 * 'export'.
+	 *
+	 * @var string
+	 */
+	public $installCmd = 'checkout';
+
+	/**
+	 * The libraries/ directory into which Doctrine should be installed. This should be either your
+	 * application's local libraries directory, or the system-wide libraries directory.
+	 *
+	 * @var string
+	 */
+	public $installPath;
+
+	/**
+	 * The path to the Doctrine repository from which the version tag will be checked out.
+	 *
+	 * @var string
+	 */
+	protected $_repositoryPath = 'http://svn.doctrine-project.org/tags';
+
 	public function run($args = array()) {
 		$args = $this->_config['request']->args;
 		$conn = Connections::get($this->connection);
@@ -56,6 +87,60 @@ class Doctrine extends \lithium\console\Command {
 		$cli = new CliController($config, $printer);
 
 		$cli->run($args);
+	}
+
+	public function install() {
+		$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
+		$this->out('');
+		$this->out("Preparing to install Doctrine...", 2);
+		$this->out("Checking permissions on {$this->installPath}...");
+
+		if (!is_writable($this->installPath)) {
+			$message = "Could not write to libraries directory, please run this command with";
+			$this->out("{$message} appropriate privileges.");
+			return;
+		}
+
+		if (!is_dir("{$this->installPath}/_source")) {
+			mkdir("{$this->installPath}/_source");
+		}
+
+		$this->out("Checking Subversion access...");
+		exec("svn --version", $result);
+		$pattern = '/^svn, version \d+\.\d+\./';
+
+		if (!is_array($result) || count($result) < 2 || !preg_match($pattern, $result[0])) {
+			$message = "Unable to access the 'svn' command. It should be installed and accessible";
+			$this->out("{$message} from your system path.");
+		}
+		$message = "Creating svn {$this->installCmd} of Doctrine {$this->installVersion} in";
+		$this->in("{$message} {$this->installPath}/_source, press Enter to continue:");
+
+		$repository = "{$this->_repositoryPath}/{$this->installVersion}";
+		$local = "{$this->installPath}/_source/Doctrine-{$this->installVersion}";
+		$install = "{$this->installPath}/Doctrine";
+
+		passthru("svn {$this->installCmd} {$repository} {$local}");
+		$target = "{$local}/lib/Doctrine";
+
+		if (!file_exists($install)) {
+			if (!symlink($target, $install)) {
+				$this->out("Symlink creation failed. Please link {$local} to {$install}");
+			}
+		} elseif (!is_link($install) || readlink($install) == $target) {
+			$this->out("A bad symlink for Doctrine exists. Please point {$local} to {$install}.");
+		}
+
+		$message = "Installation complete. You may now add Doctrine database connections to your";
+		$this->out("{$message} application.", 2);
+
+		$connections = LITHIUM_APP_PATH . '/config/connections.php';
+
+		if (!in_array(str_replace('/', DIRECTORY_SEPARATOR, $connections), get_included_files())) {
+			$message = "NOTE: config/bootstrap/connections.php is currently not being loaded in ";
+			$message .= "your application. Uncomment the corresponding require statement in";
+			$this->out("{$message} config/bootstrap.php.", 2);
+		}
 	}
 }
 
