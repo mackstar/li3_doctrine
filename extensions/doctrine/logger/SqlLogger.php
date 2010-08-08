@@ -10,9 +10,17 @@ namespace li3_doctrine\extensions\doctrine\logger;
 
 use \lithium\analysis\Logger;
 
-class SqlLogger extends \lithium\core\Object {
-	public function logSQL($sql, array $params = null) {
-		Logger::write('default', $sql);
+class SqlLogger extends \lithium\core\Object implements \Doctrine\DBAL\Logging\SQLLogger {
+    /**
+     * Logs a SQL statement somewhere.
+     *
+     * @param string $sql The SQL to be executed.
+     * @param array $params The SQL parameters.
+     * @param float $executionMS The microtime difference it took to execute this query.
+     * @return void
+     */
+    public function logSQL($sql, array $params = null, $executionMS = null) {
+		Logger::write('debug', $sql);
 	}
 }
 

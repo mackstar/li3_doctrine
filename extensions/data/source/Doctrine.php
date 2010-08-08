@@ -199,7 +199,7 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function describe($entity, $meta = array()) {
+	public function describe($entity, array $meta = array()) {
 		$schema = array();
 		$columns = $this->getSchemaManager()->listTableColumns($entity);
 		$mapping = array();

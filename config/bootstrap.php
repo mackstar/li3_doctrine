@@ -8,12 +8,29 @@
 
 use \lithium\core\Libraries;
 
-$doctrine = Libraries::get('Doctrine');
-if (empty($doctrine)) {
-	if (!defined('DOCTRINE_PATH')) {
-		define('DOCTRINE_PATH', LITHIUM_LIBRARY_PATH . '/doctrine/lib/Doctrine');
-	}
-	Libraries::add('Doctrine', array('path' => DOCTRINE_PATH));
+if (!defined('DOCTRINE_LIB_PATH')) {
+	define('DOCTRINE_LIB_PATH', LITHIUM_LIBRARY_PATH . '/doctrine/lib');
 }
 
+$libraries = array(
+	'Doctrine_Common' => array(
+		'path' => defined('DOCTRINE_LIB_COMMON_PATH') ? DOCTRINE_LIB_COMMON_PATH : DOCTRINE_LIB_PATH . '/vendor/doctrine-common/lib/Doctrine/Common',
+		'prefix' => 'Doctrine\\Common\\'
+	),
+	'Doctrine_DBAL' => array(
+		'path' => defined('DOCTRINE_LIB_DBAL_PATH') ? DOCTRINE_LIB_DBAL_PATH : DOCTRINE_LIB_PATH . '/vendor/doctrine-dbal/lib/Doctrine/DBAL',
+		'prefix' => 'Doctrine\\DBAL\\'
+	),
+	'Doctrine_ORM' => array(
+		'path' => defined('DOCTRINE_LIB_ORM_PATH') ? DOCTRINE_LIB_ORM_PATH : DOCTRINE_LIB_PATH . '/Doctrine/ORM',
+		'prefix' => 'Doctrine\\ORM\\'
+	)
+);
+
+foreach($libraries as $name => $settings) {
+	$library = Libraries::get($name);
+	if (empty($library)) {
+		Libraries::add($name, array('bootstrap'=>false) + $settings);
+	}
+}
 ?>
