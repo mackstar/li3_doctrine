@@ -45,7 +45,7 @@ class Doctrine extends \lithium\data\source\Database {
 		}
 
 		$config = array_merge(array(
-			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'models',
+			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'Proxies',
 			'proxyNamespace' => 'app\models',
 			'useModelDriver' => false
 		), $config);
@@ -199,7 +199,7 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function describe($entity, array $meta = array()) {
+	public function describe($entity, $meta = array()) {
 		$schema = array();
 		$columns = $this->getSchemaManager()->listTableColumns($entity);
 		$mapping = array();

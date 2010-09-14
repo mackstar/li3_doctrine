@@ -24,6 +24,10 @@ $libraries = array(
 	'Doctrine_ORM' => array(
 		'path' => defined('DOCTRINE_LIB_ORM_PATH') ? DOCTRINE_LIB_ORM_PATH : DOCTRINE_LIB_PATH . '/Doctrine/ORM',
 		'prefix' => 'Doctrine\\ORM\\'
+	),
+	'Symfony' => array(
+	'path' => defined('DOCTRINE_LIB_SYMFONY_PATH') ? DOCTRINE_LIB_SYMFONY_PATH : DOCTRINE_LIB_PATH . '/vendor/Symfony',
+	'prefix' => 'Symfony\\'
 	)
 );
 
