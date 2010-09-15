@@ -7,6 +7,7 @@ Tips on using the plugin
 Create your Entities with annotations in app\models. Extend the Entity class with \li3_doctrine\extensions\data\source\Doctrine [You can avoid this but then you will have to explicitly create the EntityManager object]. By default the plugin uses 'default' connection but you can specify any connection
 
 {{{
+
 // app/models/User.php
 
 namespace app\models;
@@ -59,6 +60,7 @@ class User extends Doctrine
     }
 
 }
+
 }}}
 
 {{{
@@ -83,7 +85,7 @@ If you want to use separate connection
 
 {{{
 //using separate connection
-$conn = Connections::get('li3');
+$conn = \lithium\data\Connections::get('li3');
 $doctrine = new \li3_doctrine\extensions\data\source\Doctrine($conn->_config);
 $em = $doctrine->getEntityManager();
 
