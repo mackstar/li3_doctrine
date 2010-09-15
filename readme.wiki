@@ -7,6 +7,7 @@ To start using li3_doctrine, you first have to import the doctrine ORM library
 into your lithium application, and then the li3_doctrine plugin.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 To do so, place the doctrine installation inside your `LITHIUM_LIBRARY_PATH`, 
 and also the `li3_doctrine` directory. Then, add the following lines of code 
 to your application's `config/bootstrap.php`:
@@ -20,8 +21,7 @@ Libraries::add('Doctrine', array(
 
 <<<<<<< HEAD
 Libraries::add('plugin', array('li3_doctrine' => array('bootstrap' => true)));
-}}}
-
+=======
 #### Making a connection
 
 Connecting to a Doctrine managed backend is very easy. You can do so using the
