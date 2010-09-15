@@ -86,10 +86,12 @@ class Doctrine extends \lithium\console\Command {
 		 */
 		$config = new \Doctrine\ORM\Configuration();
 		$config->setMetadataCacheImpl(new \Doctrine\Common\Cache\ArrayCache);
+
         //Annotation Driver
 		$driver = $config->newDefaultAnnotationDriver(array(LITHIUM_APP_PATH . '/models'));	
 		$config->setMetadataDriverImpl($driver);
-        //Proxy configuration
+		
+		//Proxy configuration
 		$config->setProxyDir($conn->_config['proxyDir']);
 		$config->setProxyNamespace($conn->_config['proxyNamespace']);
 		
