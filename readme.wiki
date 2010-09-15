@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## Work in progress
 =======
 #### Bootstrap
@@ -12,6 +13,9 @@ To do so, place the doctrine installation inside your `LITHIUM_LIBRARY_PATH`,
 and also the `li3_doctrine` directory. Then, add the following lines of code 
 to your application's `config/bootstrap.php`:
 =======
+>>>>>>> Tips on using the plugin
+=======
+# Work in progress
 >>>>>>> Tips on using the plugin
 
 {{{
@@ -69,7 +73,10 @@ Connections::add('default', 'Doctrine', array(
 	}
 ));
 
+<<<<<<< HEAD
 ?>}}}
+=======
+>>>>>>> Tips on using the plugin
 
 **Useful information:**
 
