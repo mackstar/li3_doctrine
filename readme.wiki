@@ -25,7 +25,7 @@ $doctrine = new \li3_doctrine\extensions\data\source\Doctrine($conn->_config);
 $em = $doctrine->getEntityManager();
 
 $user = new User();
-$user->setName('Mr.AlRight');
+$user->setName('Mr.Left');
 $em->persist($user);
 $em->flush();
 
