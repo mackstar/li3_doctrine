@@ -134,7 +134,7 @@ class Doctrine extends \lithium\console\Command {
 		$message = "Installation complete. You may now add Doctrine database connections to your";
 		$this->out("{$message} application.", 2);
 
-		$connections = LITHIUM_APP_PATH . '/config/connections.php';
+		$connections = LITHIUM_APP_PATH . '/config/bootstrap/connections.php';
 
 		if (!in_array(str_replace('/', DIRECTORY_SEPARATOR, $connections), get_included_files())) {
 			$message = "NOTE: config/bootstrap/connections.php is currently not being loaded in ";
