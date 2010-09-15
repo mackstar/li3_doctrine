@@ -35,7 +35,10 @@ Connections::add('default', 'Doctrine', array(
 	'dbname' => 'lithium'
 ));
 
+<<<<<<< HEAD
 ?>}}}
+=======
+>>>>>>> Just a few tips on using the plugin
 
 By default, your Doctrine proxy directory will be set to your application's
 `extensions/proxies` directory and your proxy namespace will be set to
