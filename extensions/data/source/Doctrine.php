@@ -46,7 +46,7 @@ class Doctrine extends \lithium\data\source\Database {
 
 		$config = array_merge(array(
 			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'Proxies',
-			'proxyNamespace' => 'app\models',
+			'proxyNamespace' => 'app\models\Proxies',
 			'useModelDriver' => false
 		), $config);
 
@@ -67,6 +67,7 @@ class Doctrine extends \lithium\data\source\Database {
 		}
 
 		$mapping = array('adapter' => 'driver', 'login'=>'user', 'database'=>'dbname');
+		
 		foreach($mapping as $key => $setting) {
 			if (!array_key_exists($setting, $config) && array_key_exists($key, $config)) {
 				$config[$setting] = $config[$key];
