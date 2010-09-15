@@ -161,6 +161,13 @@ class Doctrine extends \lithium\data\source\Database {
 	public function setSchemaManager(AbstractSchemaManager $sm) {
 		$this->_sm = $sm;
 	}
+	
+	/**
+	 *
+	 */
+	public function getConnection() {
+		return $this->_em->getConnection();
+	}
 
 	/**
 	 * Returns the list of tables in the currently-connected database.

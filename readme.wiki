@@ -109,3 +109,18 @@ Connections::add('default', array(
 	'database' => 'db_name',
 ));
 }}}
+
+The Doctrine CLI is accessible from ./li3 doctrine
+
+Data Retrieval and Manipulation
+
+{{{
+//Data Retrieval and Manipulation
+$doctrine = new \li3_doctrine\extensions\data\source\Doctrine();
+$conn = $doctrine->getConnection();
+
+$statement = $conn->prepare('SELECT * FROM User');
+$statement->execute();
+$users = $statement->fetchAll();
+print_r($users);
+}}}
