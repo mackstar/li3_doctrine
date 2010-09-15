@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## Work in progress
 =======
 #### Bootstrap
@@ -64,3 +65,5 @@ Connections::add('default', 'Doctrine', array(
 **Useful information:**
 
 - [Read more about EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)
+=======
+>>>>>>> Just a few tips on using the plugin
