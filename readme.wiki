@@ -4,10 +4,11 @@
 Tips on using the plugin
 ------------------------
 
-Create your Entities with annotations in app\models
-extend the Entity class with \li3_doctrine\extensions\data\source\Doctrine [You can avoid this but then you will have to explicitly create the EntityManager object]
+Create your Entities with annotations in app\models. 
+<br/>
+Extend the Entity class with \li3_doctrine\extensions\data\source\Doctrine [You can avoid this but then you will have to explicitly create the EntityManager object]
+<br/>
 By default the plugin uses 'default' connection but you can specify any connection
-
 
 {{{
 //using default connection
