@@ -27,7 +27,6 @@ class Doctrine extends \lithium\console\Command {
 	 */
 	public $connection = 'default';
 
-<<<<<<< HEAD
 	/**
 	 * A fully-namespaced class path to the Doctrine CLI printer that should be used for output.
 	 * This setting usually does not need to be configured.
@@ -67,8 +66,6 @@ class Doctrine extends \lithium\console\Command {
 	 */
 	protected $_repositoryPath = 'http://svn.doctrine-project.org/tags';
 
-=======
->>>>>>> Rewrote Doctrine CLI to work with the latest changes 
 	public function run($args = array()) {
 		$args = $this->_config['request']->args;
 		$input =  new \Symfony\Component\Console\Input\ArgvInput($args);
