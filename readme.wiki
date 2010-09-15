@@ -81,8 +81,11 @@ Connections::add('default', 'Doctrine', array(
 **Useful information:**
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 - [Read more about EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)
 =======
 >>>>>>> Just a few tips on using the plugin
 =======
 >>>>>>> Tips on using the plugin
+=======
+>>>>>>> Added getConnection() for data retrieval and manipulation
