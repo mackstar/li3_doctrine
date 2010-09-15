@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 ## Work in progress
 =======
 #### Bootstrap
@@ -7,25 +5,17 @@
 To start using li3_doctrine, you first have to import the doctrine ORM library
 into your lithium application, and then the li3_doctrine plugin.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 To do so, place the doctrine installation inside your `LITHIUM_LIBRARY_PATH`, 
 and also the `li3_doctrine` directory. Then, add the following lines of code 
 to your application's `config/bootstrap.php`:
-=======
->>>>>>> Tips on using the plugin
-=======
-# Work in progress
->>>>>>> Tips on using the plugin
 
 {{{
 Libraries::add('Doctrine', array(
 	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/DoctrineORM-2.0.0/Doctrine'
 ));
 
-<<<<<<< HEAD
 Libraries::add('plugin', array('li3_doctrine' => array('bootstrap' => true)));
-=======
+
 #### Making a connection
 
 Connecting to a Doctrine managed backend is very easy. You can do so using the
@@ -43,18 +33,13 @@ Connections::add('default', 'Doctrine', array(
 	'dbname' => 'lithium'
 ));
 
-<<<<<<< HEAD
 ?>}}}
-=======
->>>>>>> Just a few tips on using the plugin
 
 By default, your Doctrine proxy directory will be set to your application's
 `extensions/proxies` directory and your proxy namespace will be set to
 `\app\extensions\proxies`. To gain control over these configurations, you can
 get an instance to the `Doctrine\ORM\Configuration` class:
 {{{<?php
-=======
->>>>>>> Tips on using the plugin
 
 use \lithium\data\Connections;
 
@@ -73,19 +58,8 @@ Connections::add('default', 'Doctrine', array(
 	}
 ));
 
-<<<<<<< HEAD
 ?>}}}
-=======
->>>>>>> Tips on using the plugin
 
 **Useful information:**
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 - [Read more about EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)
-=======
->>>>>>> Just a few tips on using the plugin
-=======
->>>>>>> Tips on using the plugin
-=======
->>>>>>> Added getConnection() for data retrieval and manipulation
