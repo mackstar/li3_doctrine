@@ -95,4 +95,17 @@ $em->persist($user);
 $em->flush();
 }}}
 
-The Proxies are created in the cache folder with namespace app\resources\tmp\cache\Doctrine\Proxies
+NOTE: The Proxies are created in the cache folder with namespace app\resources\tmp\cache\Doctrine\Proxies
+
+An example of connection
+
+{{{
+Connections::add('default', array(
+	'type' => 'Doctrine',
+	'driver' => 'pdo_mysql',
+	'host' => 'localhost',
+	'login' => 'root',
+	'password' => 'root',
+	'database' => 'db_name',
+));
+}}}
