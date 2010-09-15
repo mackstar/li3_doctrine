@@ -18,7 +18,7 @@ use \Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use \Doctrine\ORM\Configuration;
 use \Doctrine\ORM\EntityManager;
 use \Doctrine\ORM\Query;
-
+use \lithium\data\Connections;
 /**
  *
  */
@@ -37,6 +37,13 @@ class Doctrine extends \lithium\data\source\Database {
 	 *
 	 */
 	public function __construct($config = array()) {
+		
+		//if no connection is provided use default
+		if(!count($config)){
+			$conn = Connections::get('default');
+			$config = $conn->_config;
+		}
+		
 		if (isset($config['configuration'])) {
 			$configuration = $config['configuration'];
 			unset($config['configuration']);
@@ -45,18 +52,25 @@ class Doctrine extends \lithium\data\source\Database {
 		}
 
 		$config = array_merge(array(
-			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'Proxies',
-			'proxyNamespace' => 'app\models\Proxies',
-			'useModelDriver' => false
+			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'Doctrine' . DIRECTORY_SEPARATOR . 'Proxies',
+			'proxyNamespace' => 'app\resources\tmp\cache\Doctrine\Proxies',
+			'useModelDriver' => true
 		), $config);
 
 		$configuration->setProxyDir($config['proxyDir']);
 		$configuration->setProxyNamespace($config['proxyNamespace']);
 		$configuration->setAutoGenerateProxyClasses(true);
 		$configuration->setMetadataCacheImpl(new ArrayCache());
-		if (!$config['useModelDriver']) {
-			$configuration->setMetadataDriverImpl(new ModelDriver());
-		}
+
+		//Annotation Driver
+		$driver = $configuration->newDefaultAnnotationDriver(array(LITHIUM_APP_PATH . '/models'));	
+		$configuration->setMetadataDriverImpl($driver);
+		
+		//TODO: Not sure if this is required or not!
+//		if (!$config['useModelDriver']) {
+//			$configuration->setMetadataDriverImpl(new ModelDriver());
+//		}
+		
 		$configuration->setSqlLogger(new SqlLogger());
 
 		if (isset($config['eventManager'])) {
@@ -67,7 +81,6 @@ class Doctrine extends \lithium\data\source\Database {
 		}
 
 		$mapping = array('adapter' => 'driver', 'login'=>'user', 'database'=>'dbname');
-		
 		foreach($mapping as $key => $setting) {
 			if (!array_key_exists($setting, $config) && array_key_exists($key, $config)) {
 				$config[$setting] = $config[$key];
