@@ -4,19 +4,82 @@
 Tips on using the plugin
 ------------------------
 
-Create your Entities with annotations in app\models. 
-<br/>
-Extend the Entity class with \li3_doctrine\extensions\data\source\Doctrine [You can avoid this but then you will have to explicitly create the EntityManager object]
-<br/>
-By default the plugin uses 'default' connection but you can specify any connection
+Create your Entities with annotations in app\models. Extend the Entity class with \li3_doctrine\extensions\data\source\Doctrine [You can avoid this but then you will have to explicitly create the EntityManager object]. By default the plugin uses 'default' connection but you can specify any connection
 
 {{{
-//using default connection
-$user = new User();
-$user->setName('Mr.Right');
-$user->getEntityManager()->persist($user);
-$user->getEntityManager()->flush();
+// app/models/User.php
+
+namespace app\models;
+use \li3_doctrine\extensions\data\source\Doctrine;
+/**
+ * @Entity 
+ */
+class User extends Doctrine
+{
+    /**
+     * @Id
+     * @Column(type="integer")
+     * @GeneratedValue(strategy="IDENTITY")
+     */
+    protected $id;
+
+    /**
+     * @Column(type="string", length="255")
+     */
+    protected $name;
+
+    /**
+     * Get id
+     *
+     * @return integer $id
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Set name
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * Get name
+     *
+     * @return string $name
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+}
 }}}
+
+{{{
+namespace app\controllers;
+
+use app\models\User;
+
+class UserController extends \lithium\action\Controller {
+
+	public function index() {
+
+		$user = new User();
+		$user->setName('Mr.Right');
+		$user->getEntityManager()->persist($user);
+		$user->getEntityManager()->flush();
+
+	}
+}
+}}}
+
+If you want to use separate connection
 
 {{{
 //using separate connection
