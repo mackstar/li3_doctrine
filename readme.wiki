@@ -15,6 +15,7 @@ Libraries::add('Doctrine', array(
 	'path' => LITHIUM_LIBRARY_PATH . '/doctrine/DoctrineORM-2.0.0/Doctrine'
 ));
 
+<<<<<<< HEAD
 Libraries::add('plugin', array('li3_doctrine' => array('bootstrap' => true)));
 }}}
 
@@ -45,6 +46,8 @@ By default, your Doctrine proxy directory will be set to your application's
 `\app\extensions\proxies`. To gain control over these configurations, you can
 get an instance to the `Doctrine\ORM\Configuration` class:
 {{{<?php
+=======
+>>>>>>> Tips on using the plugin
 
 use \lithium\data\Connections;
 
