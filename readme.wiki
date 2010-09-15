@@ -8,17 +8,16 @@ Create your Entities with annotations in app\models
 extend the Entity class with \li3_doctrine\extensions\data\source\Doctrine [You can avoid this but then you will have to explicitly create the EntityManager object]
 By default the plugin uses 'default' connection but you can specify any connection
 
-------------------------------------------------
 
-eg.
-
+{{{
 //using default connection
 $user = new User();
 $user->setName('Mr.Right');
 $user->getEntityManager()->persist($user);
 $user->getEntityManager()->flush();
+}}}
 
-
+{{{
 //using separate connection
 $conn = Connections::get('li3');
 $doctrine = new \li3_doctrine\extensions\data\source\Doctrine($conn->_config);
@@ -28,7 +27,6 @@ $user = new User();
 $user->setName('Mr.Left');
 $em->persist($user);
 $em->flush();
-
-------------------------------------------------
+}}}
 
 The Proxies are created in the cache folder with namespace app\resources\tmp\cache\Doctrine\Proxies
