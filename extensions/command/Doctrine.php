@@ -28,14 +28,6 @@ class Doctrine extends \lithium\console\Command {
 	public $connection = 'default';
 
 	/**
-	 * A fully-namespaced class path to the Doctrine CLI printer that should be used for output.
-	 * This setting usually does not need to be configured.
-	 *
-	 * @var string
-	 */
-	public $printer = '\Doctrine\Common\Cli\Printers\NormalPrinter';
-
-	/**
 	 * When installing Doctrine from a remote repository, this is the version that will be checked
 	 * out. This must be a valid SVN tag in the Doctrine repository.
 	 *
