@@ -16,7 +16,6 @@ Libraries::add('Doctrine', array(
 
 Libraries::add('plugin', array('li3_doctrine' => array('bootstrap' => true)));
 }}}
-
 #### Making a connection
 
 Connecting to a Doctrine managed backend is very easy. You can do so using the
