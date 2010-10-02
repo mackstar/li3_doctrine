@@ -33,7 +33,7 @@ class Doctrine extends \lithium\console\Command {
 	 *
 	 * @var string
 	 */
-	public $installVersion = '2.0.0-BETA1';
+	public $installVersion = '2.0.0-BETA4';
 
 	/**
 	 * Indicates the SVN command to use when installing Doctrine. Can be set to 'checkout' or
@@ -41,7 +41,7 @@ class Doctrine extends \lithium\console\Command {
 	 *
 	 * @var string
 	 */
-	public $installCmd = 'checkout';
+	public $installCmd = 'clone';
 
 	/**
 	 * The libraries/ directory into which Doctrine should be installed. This should be either your
@@ -56,7 +56,7 @@ class Doctrine extends \lithium\console\Command {
 	 *
 	 * @var string
 	 */
-	protected $_repositoryPath = 'http://svn.doctrine-project.org/tags';
+	protected $_repositoryPath = 'git://github.com/doctrine/doctrine2.git';
 
 	public function run($args = array()) {
 		$args = $this->_config['request']->args;
@@ -143,32 +143,60 @@ class Doctrine extends \lithium\console\Command {
 		if (!is_dir("{$this->installPath}/_source")) {
 			mkdir("{$this->installPath}/_source");
 		}
+		
+		$this->out("Checking Directory...");
+		if (getcwd() == LITHIUM_LIBRARY_PATH) {
+		  $this->installPath = $this->installPath ?: LITHIUM_LIBRARY_PATH;
+		} elseif (getcwd() == LITHIUM_APP_PATH) {
+		  $this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
+		} else { 
+		  $this->out("You need to intall Doctrine from either the Lithium application path or from the library path."); 
+		  exit(); 
+		}
+		$pattern = '/^git version \d+\.\d+\./';
 
-		$this->out("Checking Subversion access...");
-		exec("svn --version", $result);
-		$pattern = '/^svn, version \d+\.\d+\./';
+		$this->out("Checking Git access...");
+		exec("git --version", $result);
+		$pattern = '/^git version \d+\.\d+\./';
 
-		if (!is_array($result) || count($result) < 2 || !preg_match($pattern, $result[0])) {
-			$message = "Unable to access the 'svn' command. It should be installed and accessible";
+		if (!is_array($result) || count($result) < 1 || !preg_match($pattern, $result[0])) {
+			$message = "Unable to access the 'git' command. It should be installed and accessible";
 			$this->out("{$message} from your system path.");
 		}
-		$message = "Creating svn {$this->installCmd} of Doctrine {$this->installVersion} in";
+		$message = "Creating git {$this->installCmd} of Doctrine in";
 		$this->in("{$message} {$this->installPath}/_source, press Enter to continue:");
 
-		$repository = "{$this->_repositoryPath}/{$this->installVersion}";
-		$local = "{$this->installPath}/_source/Doctrine-{$this->installVersion}";
+		$repository = "{$this->_repositoryPath}";
+		$local = "{$this->installPath}/_source/Doctrine2";
 		$install = "{$this->installPath}/Doctrine";
 
-		passthru("svn {$this->installCmd} {$repository} {$local}");
+		//passthru("git {$this->installCmd} {$repository} {$local}");
+		$current = getcwd();
+		chdir($local);
+		passthru("git checkout {$this->installVersion}");
+		passthru("git submodule update --init");
 		$target = "{$local}/lib/Doctrine";
-
-		if (!file_exists($install)) {
-			if (!symlink($target, $install)) {
-				$this->out("Symlink creation failed. Please link {$local} to {$install}");
-			}
-		} elseif (!is_link($install) || readlink($install) == $target) {
-			$this->out("A bad symlink for Doctrine exists. Please point {$local} to {$install}.");
+		chdir($current);
+		if(!is_dir($install)){
+		  mkdir($install);
 		}
+		
+		$symLinks = array(
+		  array('install'=>"{$install}/Common", 'target'=>"{$local}/lib/vendor/doctrine-common/lib/Doctrine/Common"),
+		  array('install'=>"{$install}/ORM", 'target'=>"{$local}/lib/Doctrine/ORM"),
+		  array('install'=>"{$install}/DBAL", 'target'=>"{$local}/lib/vendor/doctrine-dbal/lib/Doctrine/DBAL"),
+		  array('install'=>"{$this->installPath}/Symfony", 'target'=>"{$local}/lib/vendor/Symfony"),
+		);		
+		
+    foreach($symLinks as $symLink){
+  		if (!file_exists($symLink['install'])) {
+  			if (!symlink($symLink['target'], $symLink['install'])) {
+  				$this->out("Symlink creation failed. Please link {$symLink['target']} to {$symLink['install']}");
+  		  }
+  		} elseif (!is_link($symLink['install']) || readlink($symLink['install']) != $symLink['target']) {
+  		  $this->out("A bad symlink for Doctrine exists. Please point {$symLink['target']} to {$symLink['install']}.");
+  	  }
+    }
 
 		$message = "Installation complete. You may now add Doctrine database connections to your";
 		$this->out("{$message} application.", 2);
