@@ -14,11 +14,13 @@ use \lithium\util\Set;
 use \Doctrine\Common\EventManager;
 use \Doctrine\Common\Cache\ArrayCache;
 use \Doctrine\DBAL\Schema\AbstractSchemaManager;
+use \Doctrine\DBAL\Event\Listeners\MysqlSessionInit;
 use \Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use \Doctrine\ORM\Configuration;
 use \Doctrine\ORM\EntityManager;
 use \Doctrine\ORM\Query;
 use \lithium\data\Connections;
+
 /**
  *
  */
@@ -90,6 +92,12 @@ class Doctrine extends \lithium\data\source\Database {
 
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
 		$this->_sm = $this->_em->getConnection()->getSchemaManager();
+		
+		if(get_class($this->_em->getConnection()->getDriver()) == 'Doctrine\DBAL\Driver\PDOMySql\Driver'){
+  		$this->_em->getEventManager()->addEventSubscriber(
+        new MysqlSessionInit('utf8', 'utf8_unicode_ci')
+      );
+    }
 		parent::__construct($config);
 	}
 
@@ -220,7 +228,7 @@ class Doctrine extends \lithium\data\source\Database {
 	/**
 	 *
 	 */
-	public function describe($entity, $meta = array()) {
+	public function describe($entity, array $meta = array()) {
 		$schema = array();
 		$columns = $this->getSchemaManager()->listTableColumns($entity);
 		$mapping = array();
