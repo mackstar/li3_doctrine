@@ -6,23 +6,19 @@
  * @license       http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
-use \lithium\core\Libraries;
-
-
+use lithium\core\Libraries;
+use lithium\core\ConfigException;
 
 $libraries = array('Doctrine\Common', 'Doctrine\DBAL', 'Doctrine\ORM', 'Symfony');
 
-
-// Check directory exists so not to throw errors on this installer
-if(is_dir(LITHIUM_APP_PATH.'/libraries/Doctrine')||is_dir(LITHIUM_LIBRARY_PATH.'/Doctrine')){
-
-  foreach($libraries as $name) {
-  	if (!Libraries::get($name)) {
-  		Libraries::add($name, array('bootstrap' => false));
-  	}
-  }
-
+try {
+	foreach($libraries as $name) {
+		if (!Libraries::get($name)) {
+			Libraries::add($name, array('bootstrap' => false));
+		}
+	}
+} catch (ConfigException $e) {
+	return;
 }
-
 
 ?>

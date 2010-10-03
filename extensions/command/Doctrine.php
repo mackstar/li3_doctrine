@@ -104,26 +104,25 @@ class Doctrine extends \lithium\console\Command {
 		}
 		
 		$cli->addCommands(array(
-		// DBAL Commands
-		new \Doctrine\DBAL\Tools\Console\Command\RunSqlCommand(),
-		new \Doctrine\DBAL\Tools\Console\Command\ImportCommand(),
+			// DBAL Commands
+			new \Doctrine\DBAL\Tools\Console\Command\RunSqlCommand(),
+			new \Doctrine\DBAL\Tools\Console\Command\ImportCommand(),
 
-		// ORM Commands
-		new \Doctrine\ORM\Tools\Console\Command\ClearCache\MetadataCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\ClearCache\ResultCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\ClearCache\QueryCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\SchemaTool\CreateCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\SchemaTool\UpdateCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\EnsureProductionSettingsCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\ConvertDoctrine1SchemaCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\GenerateRepositoriesCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\GenerateEntitiesCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\GenerateProxiesCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
-		new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
-
+			// ORM Commands
+			new \Doctrine\ORM\Tools\Console\Command\ClearCache\MetadataCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\ClearCache\ResultCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\ClearCache\QueryCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\SchemaTool\CreateCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\SchemaTool\UpdateCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\EnsureProductionSettingsCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\ConvertDoctrine1SchemaCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\GenerateRepositoriesCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\GenerateEntitiesCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\GenerateProxiesCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
+			new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
 		));
 		$cli->run($input);
 	}
@@ -143,15 +142,17 @@ class Doctrine extends \lithium\console\Command {
 		if (!is_dir("{$this->installPath}/_source")) {
 			mkdir("{$this->installPath}/_source");
 		}
-		
 		$this->out("Checking Directory...");
+
 		if (getcwd() == LITHIUM_LIBRARY_PATH) {
-		  $this->installPath = $this->installPath ?: LITHIUM_LIBRARY_PATH;
+			$this->installPath = $this->installPath ?: LITHIUM_LIBRARY_PATH;
 		} elseif (getcwd() == LITHIUM_APP_PATH) {
-		  $this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
-		} else { 
-		  $this->out("You need to intall Doctrine from either the Lithium application path or from the library path."); 
-		  exit(); 
+			$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
+		} else {
+			$message = 'You need to intall Doctrine from either the Lithium application path or ';
+			$message .= 'from the library path.';
+			$this->out($message);
+			$this->_stop(0); 
 		}
 		$pattern = '/^git version \d+\.\d+\./';
 
@@ -177,18 +178,31 @@ class Doctrine extends \lithium\console\Command {
 		passthru("git submodule update --init");
 		$target = "{$local}/lib/Doctrine";
 		chdir($current);
-		if(!is_dir($install)){
-		  mkdir($install);
+
+		if (!is_dir($install)) {
+			mkdir($install);
 		}
-		
+
 		$symLinks = array(
-		  array('install'=>"{$install}/Common", 'target'=>"{$local}/lib/vendor/doctrine-common/lib/Doctrine/Common"),
-		  array('install'=>"{$install}/ORM", 'target'=>"{$local}/lib/Doctrine/ORM"),
-		  array('install'=>"{$install}/DBAL", 'target'=>"{$local}/lib/vendor/doctrine-dbal/lib/Doctrine/DBAL"),
-		  array('install'=>"{$this->installPath}/Symfony", 'target'=>"{$local}/lib/vendor/Symfony"),
-		);		
-		
-    foreach($symLinks as $symLink){
+			array(
+				'install' => "{$install}/Common",
+				'target'=>"{$local}/lib/vendor/doctrine-common/lib/Doctrine/Common"
+			),
+			array(
+				'install' => "{$install}/ORM",
+				'target'=>"{$local}/lib/Doctrine/ORM"
+			),
+			array(
+				'install' => "{$install}/DBAL",
+				'target'=>"{$local}/lib/vendor/doctrine-dbal/lib/Doctrine/DBAL"
+			),
+			array(
+				'install' => "{$this->installPath}/Symfony",
+				'target'=>"{$local}/lib/vendor/Symfony"
+			),
+		);
+
+		foreach ($symLinks as $symLink) {
   		if (!file_exists($symLink['install'])) {
   			if (!symlink($symLink['target'], $symLink['install'])) {
   				$this->out("Symlink creation failed. Please link {$symLink['target']} to {$symLink['install']}");
