@@ -12,14 +12,17 @@ use \lithium\core\Libraries;
 
 $libraries = array('Doctrine\Common', 'Doctrine\DBAL', 'Doctrine\ORM', 'Symfony');
 
-foreach($libraries as $name) {
-	if (!Libraries::get($name)) {
-		Libraries::add($name, array('bootstrap' => false));
-	}
+
+// Check directory exists so not to throw errors on this installer
+if(is_dir(LITHIUM_APP_PATH.'/libraries/Doctrine')||is_dir(LITHIUM_LIBRARY_PATH.'/Doctrine')){
+
+  foreach($libraries as $name) {
+  	if (!Libraries::get($name)) {
+  		Libraries::add($name, array('bootstrap' => false));
+  	}
+  }
+
 }
 
 
-var_dump(Libraries::get('Doctrine\ORM'));
-var_dump(class_exists('Doctrine\ORM\Configuration'));
-die();
 ?>

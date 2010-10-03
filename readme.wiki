@@ -60,6 +60,62 @@ Connections::add('default', 'Doctrine', array(
 
 ?>}}}
 
+To use Doctrine models in your app, add standard 
+doctrine entities to the model directory, example:
+{{{<?php
+
+// app/models/User.php
+
+namespace app\models;
+use \li3_doctrine\extensions\data\source\Doctrine;
+/**
+ * @Entity 
+ */
+class User extends Doctrine
+{
+    /**
+     * @Id
+     * @Column(type="integer")
+     * @GeneratedValue(strategy="IDENTITY")
+     */
+    protected $id;
+
+    /**
+     * @Column(type="string", length="255")
+     */
+    protected $name;
+
+    /**
+     * Set name
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * Get name
+     *
+     * @return string $name
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+}
+
+?>}}}
+ 
+Then this can be model can be used and accessed from your controller in the following fashion.
+
+{{{$user = new User();
+$user->setName('Lithium Guy');
+$user->getEntityManager()->persist($user);
+$user->getEntityManager()->flush();}}}
+
 **Useful information:**
 
 - [Read more about EntityManager](http://www.doctrine-project.org/documentation/manual/2_0/en/configuration#bootstrapping:obtaining-an-entitymanager)

@@ -170,7 +170,7 @@ class Doctrine extends \lithium\console\Command {
 		$local = "{$this->installPath}/_source/Doctrine2";
 		$install = "{$this->installPath}/Doctrine";
 
-		//passthru("git {$this->installCmd} {$repository} {$local}");
+		passthru("git {$this->installCmd} {$repository} {$local}");
 		$current = getcwd();
 		chdir($local);
 		passthru("git checkout {$this->installVersion}");
