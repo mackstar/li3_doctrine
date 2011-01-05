@@ -8,18 +8,19 @@
 
 namespace li3_doctrine\extensions\data\source;
 
-use \li3_doctrine\extensions\doctrine\logger\SqlLogger;
-use \li3_doctrine\extensions\doctrine\mapper\ModelDriver;
-use \lithium\util\Set;
-use \Doctrine\Common\EventManager;
-use \Doctrine\Common\Cache\ArrayCache;
-use \Doctrine\DBAL\Schema\AbstractSchemaManager;
-use \Doctrine\DBAL\Event\Listeners\MysqlSessionInit;
-use \Doctrine\ORM\Mapping\Driver\AnnotationDriver;
-use \Doctrine\ORM\Configuration;
-use \Doctrine\ORM\EntityManager;
-use \Doctrine\ORM\Query;
-use \lithium\data\Connections;
+use li3_doctrine\extensions\doctrine\logger\SqlLogger;
+use li3_doctrine\extensions\doctrine\mapper\ModelDriver;
+use lithium\util\Set;
+use Doctrine\Common\EventManager;
+use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Event\Listeners\MysqlSessionInit;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\Configuration;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Query;
+use lithium\data\Connections;
+use Doctrine\DBAL\Driver;
 
 /**
  *
@@ -39,65 +40,55 @@ class Doctrine extends \lithium\data\source\Database {
 	 *
 	 */
 	public function __construct($config = array()) {
-		
-		//if no connection is provided use default
-		if(!count($config)){
-			$conn = Connections::get('default');
-			$config = $conn->_config;
-		}
-		
-		if (isset($config['configuration'])) {
-			$configuration = $config['configuration'];
-			unset($config['configuration']);
-		} else {
-			$configuration = new Configuration();
-		}
+		$defaults = array(
+			'proxy' => array(
+				'auto' => true,
+				'path' => LITHIUM_APP_PATH . '/resources/tmp/cache/Doctrine/Proxies',
+				'namespace' => 'app\resources\tmp\cache\Doctrine\Proxies'
+			),
+			'useModelDriver' => true,
+			'mapping' => array('class' => null, 'path' => LITHIUM_APP_PATH . '/models'),
+			'configuration' => null,
+			'eventManager' => null,
+		);
+		$config = Set::merge($defaults, $config);
 
-		$config = array_merge(array(
-			'proxyDir' => LITHIUM_APP_PATH . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'Doctrine' . DIRECTORY_SEPARATOR . 'Proxies',
-			'proxyNamespace' => 'app\resources\tmp\cache\Doctrine\Proxies',
-			'useModelDriver' => true
-		), $config);
+		$configuration = $config['configuration'] ?: new Configuration();
+		$eventManager = $config['eventManager'] ?: new EventManager();
 
-		$configuration->setProxyDir($config['proxyDir']);
-		$configuration->setProxyNamespace($config['proxyNamespace']);
-		$configuration->setAutoGenerateProxyClasses(true);
+		$configuration->setProxyDir($config['proxy']['path']);
+		$configuration->setProxyNamespace($config['proxy']['namespace']);
+
+		$configuration->setAutoGenerateProxyClasses($config['proxy']['auto']);
 		$configuration->setMetadataCacheImpl(new ArrayCache());
 
-		//Annotation Driver
-		$driver = $configuration->newDefaultAnnotationDriver(array(LITHIUM_APP_PATH . '/models'));	
+		// Annotation Driver
+		$driver = $configuration->newDefaultAnnotationDriver(array(LITHIUM_APP_PATH . '/models'));
 		$configuration->setMetadataDriverImpl($driver);
-		
-		//TODO: Not sure if this is required or not!
-//		if (!$config['useModelDriver']) {
-//			$configuration->setMetadataDriverImpl(new ModelDriver());
-//		}
-		
+
+		// TODO: Not sure if this is required or not!
+		// if (!$config['useModelDriver']) {
+		// 	$configuration->setMetadataDriverImpl(new ModelDriver());
+		// }
+
 		$configuration->setSqlLogger(new SqlLogger());
+		$mapping = array('adapter' => 'driver', 'login' => 'user', 'database' => 'dbname');
 
-		if (isset($config['eventManager'])) {
-			$eventManager = $config['eventManager'];
-			unset($config['eventManager']);
-		} else {
-			$eventManager = new EventManager();
-		}
-
-		$mapping = array('adapter' => 'driver', 'login'=>'user', 'database'=>'dbname');
-		foreach($mapping as $key => $setting) {
-			if (!array_key_exists($setting, $config) && array_key_exists($key, $config)) {
-				$config[$setting] = $config[$key];
+		foreach($mapping as $source => $dest) {
+			if (isset($config[$source]) && !isset($config[$dest])) {
+				$config[$dest] = $config[$source];
+				unset($config[$source]);
 			}
 		}
-		$config = array_diff_key($config, $mapping);
 
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
 		$this->_sm = $this->_em->getConnection()->getSchemaManager();
-		
-		if(get_class($this->_em->getConnection()->getDriver()) == 'Doctrine\DBAL\Driver\PDOMySql\Driver'){
-  		$this->_em->getEventManager()->addEventSubscriber(
-        new MysqlSessionInit('utf8', 'utf8_unicode_ci')
-      );
-    }
+
+		if ($this->_em->getConnection()->getDriver() instanceof Driver\PDOMySql\Driver) {
+			$this->_em->getEventManager()->addEventSubscriber(
+				new MysqlSessionInit('utf8', 'utf8_unicode_ci')
+			);
+		}
 		parent::__construct($config);
 	}
 
@@ -133,11 +124,15 @@ class Doctrine extends \lithium\data\source\Database {
 	public function isConnected(array $options = array()) {
 		$defaults = array('autoConnect' => false);
 		$options += $defaults;
-		$connected = $this->getEntityManager()->getConnection()->isConnected();
+
+		if (!($this->_em) || !($connection = $this->_em->getConnection())) {
+			return false;
+		}
+		$connected = $connection->isConnected();
 
 		if (!$connected && $options['autoConnect']) {
 			$this->connect();
-			return $this->getEntityManager()->getConnection()->isConnected();
+			return $this->_em->getConnection()->isConnected();
 		}
 		return $connected;
 	}
@@ -211,7 +206,7 @@ class Doctrine extends \lithium\data\source\Database {
 				} else {
 					$result = $resource;
 				}
-				if (!empty($result)) {
+				if ($result) {
 					$this->getEntityManager()->detach($result);
 				}
 			break;
@@ -232,17 +227,14 @@ class Doctrine extends \lithium\data\source\Database {
 		$schema = array();
 		$columns = $this->getSchemaManager()->listTableColumns($entity);
 		$mapping = array();
+
 		foreach($columns as $field => $column) {
-			$class = get_class($column->getType());
-			if (empty($mapping[$class])) {
+			if (!$mapping[$class = get_class($column->getType())]) {
 				$type = substr($class, strrpos($class, '\\') + 1);
 				$mapping[$class] = strtolower(preg_replace('/Type$/', '', $type));
 			}
-			$schema[$field] = array_merge($column->toArray(), array(
-				'type' => $mapping[$class]
-			));
+			$schema[$field] = array_merge($column->toArray(), array('type' => $mapping[$class]));
 		}
-
 		return $schema;
 	}
 
@@ -252,9 +244,11 @@ class Doctrine extends \lithium\data\source\Database {
 	 */
 	public function read($query, array $options = array()) {
 		$doctrineQuery = $query->query();
+
 		if (!isset($doctrineQuery)) {
 			$query = $query->export($this);
-			$doctrineQuery = $this->_filter(__METHOD__, compact('query', 'options'), function($self, $params, $chain) {
+			$params = compact('query', 'options');
+			$doctrineQuery = $this->_filter(__METHOD__, $params, function($self, $params, $chain) {
 				extract($params);
 				$doctrineQuery = $self->getEntityManager()->createQueryBuilder();
 				$doctrineQuery->from($options['model'], $options['model']::meta('name'));
@@ -300,7 +294,6 @@ class Doctrine extends \lithium\data\source\Database {
 			if (!isset($doctrineQuery)) {
 				return null;
 			}
-
 			$doctrineQuery = $doctrineQuery->getQuery();
 
 			if (!empty($query['fields'])) {
@@ -308,11 +301,6 @@ class Doctrine extends \lithium\data\source\Database {
 			}
 		}
 
-
-		//var_dump($doctrineQuery->getSingleResult());
-		//echo '<hr />';
-		/*$r = $doctrineQuery->getResult();
-		var_dump($r[0]->post->title);*/
 		if ($query['limit'] == 1) {
 			return $doctrineQuery->getSingleResult();
 		}

@@ -11,14 +11,14 @@ use lithium\core\ConfigException;
 
 $libraries = array('Doctrine\Common', 'Doctrine\DBAL', 'Doctrine\ORM', 'Symfony');
 
-try {
-	foreach($libraries as $name) {
-		if (!Libraries::get($name)) {
+foreach($libraries as $name) {
+	if (!Libraries::get($name)) {
+		try {
 			Libraries::add($name, array('bootstrap' => false));
+		} catch (ConfigException $e) {
+			continue;
 		}
 	}
-} catch (ConfigException $e) {
-	return;
 }
 
 ?>
