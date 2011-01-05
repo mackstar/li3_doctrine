@@ -33,7 +33,7 @@ class Doctrine extends \lithium\console\Command {
 	 *
 	 * @var string
 	 */
-	public $installVersion = '2.0.0-BETA4';
+	public $installVersion = '2.0.0';
 
 	/**
 	 * Indicates the SVN command to use when installing Doctrine. Can be set to 'checkout' or
