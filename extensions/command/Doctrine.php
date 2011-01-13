@@ -59,9 +59,26 @@ class Doctrine extends \lithium\console\Command {
 	protected $_repositoryPath = 'git://github.com/doctrine/doctrine2.git';
 
 	public function run($args = array()) {
-		$args = $this->_config['request']->args;
+		
+		$defaults = array(
+			'proxy' => array(
+				'auto' => true,
+				'path' => LITHIUM_APP_PATH . '/resources/tmp/cache/Doctrine/Proxies',
+				'namespace' => 'Doctrine\Proxies'
+			),
+			'useModelDriver' => true,
+			'mapping' => array('class' => null, 'path' => LITHIUM_APP_PATH . '/models'),
+			'configuration' => null,
+			'eventManager' => null,
+		);
+		
+		if ($this->request->params['action'] != 'run') {
+			$args = $this->request->argv;
+		}
+		
 		$input =  new \Symfony\Component\Console\Input\ArgvInput($args);
 		$conn = Connections::get($this->connection);
+		$conn->_config = $conn->_config + $defaults;
 		
 		if (!$conn || !$conn instanceof \li3_doctrine\extensions\data\source\Doctrine) {
 			$error = "Error: Could not get Doctrine proxy object from Connections, using";
@@ -79,29 +96,28 @@ class Doctrine extends \lithium\console\Command {
 		$config = new \Doctrine\ORM\Configuration();
 		$config->setMetadataCacheImpl(new \Doctrine\Common\Cache\ArrayCache);
 
-        //Annotation Driver
+		//Annotation Driver
 		$driver = $config->newDefaultAnnotationDriver(array(LITHIUM_APP_PATH . '/models'));	
 		$config->setMetadataDriverImpl($driver);
 		
 		//Proxy configuration
-		$config->setProxyDir($conn->_config['proxyDir']);
-		$config->setProxyNamespace($conn->_config['proxyNamespace']);
+		$config->setProxyDir($conn->_config['proxy']['path']);
+		$config->setProxyNamespace($conn->_config['proxy']['namespace']);
 		
 		//EntityManager
 		$em = \Doctrine\ORM\EntityManager::create($conn->_config, $config);
-		$helpers = array(
-                'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()),
-                'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em)
-		);
+		$helperSet = new \Symfony\Component\Console\Helper\HelperSet(array(
+		    'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()),
+		    'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em)
+		));
 		
 		//CLI
-		$cli = new \Symfony\Component\Console\Application('Doctrine Command Line Interface', \Doctrine\Common\Version::VERSION);
+		$cli = new \Symfony\Component\Console\Application(
+			'Doctrine Command Line Interface', \Doctrine\Common\Version::VERSION
+		);
 		$cli->setCatchExceptions(true);
 		$cli->register('doctrine');
-		$helperSet = $cli->getHelperSet();
-		foreach ($helpers as $name => $helper) {
-			$helperSet->set($helper, $name);
-		}
+		$cli->setHelperSet($helperSet);
 		
 		$cli->addCommands(array(
 			// DBAL Commands
@@ -126,6 +142,7 @@ class Doctrine extends \lithium\console\Command {
 		));
 		$cli->run($input);
 	}
+	
 
 	public function install() {
 		$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
@@ -222,6 +239,14 @@ class Doctrine extends \lithium\console\Command {
 			$message .= "your application. Uncomment the corresponding require statement in";
 			$this->out("{$message} config/bootstrap.php.", 2);
 		}
+	}
+	
+	public function migrationinstall(){
+		$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
+		$this->out('');
+		$this->out("Preparing to install Doctrine...", 2);
+		$this->out("Checking permissions on...");
+		
 	}
 }
 

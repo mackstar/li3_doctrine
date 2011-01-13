@@ -44,7 +44,7 @@ class Doctrine extends \lithium\data\source\Database {
 			'proxy' => array(
 				'auto' => true,
 				'path' => LITHIUM_APP_PATH . '/resources/tmp/cache/Doctrine/Proxies',
-				'namespace' => 'app\resources\tmp\cache\Doctrine\Proxies'
+				'namespace' => 'Doctrine\Proxies'
 			),
 			'useModelDriver' => true,
 			'mapping' => array('class' => null, 'path' => LITHIUM_APP_PATH . '/models'),
