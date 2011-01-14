@@ -103,7 +103,7 @@ You can choose where you would like to store these repositories, but I recommend
 class User{
 }}}
 
-Because of the built in name-spacing in Lithium, Doctrine knows that the repository for the User more can be found in the specified class location.
+Because of the built in name-spacing in Lithium, Doctrine knows that the repository for the User can be found in the specified class location.
 
 We can now create the file ```app/resources/repositories/UserRepository.php``` as in the trivial example below
 
