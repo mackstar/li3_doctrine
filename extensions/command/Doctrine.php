@@ -88,7 +88,12 @@ class Doctrine extends \lithium\console\Command {
 		$migrationCommand = false;
 		$migrationConfig = true;
 		$migration = false;
-		foreach ($args as $arg) {
+		
+		$conn = Connections::get($this->connection);
+		$conn->_config = $conn->_config + $defaults;
+		
+		$i=0;
+		foreach ($args as &$arg) {
 			if (strstr($arg, 'migrations:')) {
 				$migrationCommand = true;
 			}
@@ -98,6 +103,10 @@ class Doctrine extends \lithium\console\Command {
 			if (strstr($arg, '--configuration=')) {
 				$migrationConfig = false;
 			}
+			if (strstr($arg, '--connection')) {
+				unset($args[$i]);
+			}
+			$i++;
 		}
 		
 		if ($migrationCommand && $migrationConfig) {
@@ -106,8 +115,6 @@ class Doctrine extends \lithium\console\Command {
 
 		$input =  new \Symfony\Component\Console\Input\ArgvInput($args);
 
-		$conn = Connections::get($this->connection);
-		$conn->_config = $conn->_config + $defaults;
 		
 		if (!$conn || !$conn instanceof \li3_doctrine\extensions\data\source\Doctrine) {
 			$error = "Error: Could not get Doctrine proxy object from Connections, using";
