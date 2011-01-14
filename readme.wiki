@@ -97,4 +97,4 @@ This will install all necessary configuration files, directories and latest vers
 
 You can then type ```li3 doctrine list migrations``` for a full list of options. Type ```li3 doctrine migrations:generate``` to create your first migration. The migration files will be created in yourapp/migrations. 
 
-All migration commands are avaible as in http://www.doctrine-project.org/projects/migrations/2.0/docs/en but with the ```./doctrine``` command being replaced by ```li3 doctrine```. 
+All migration commands are avaible as in [the Doctrine Migrations project documentation](http://www.doctrine-project.org/projects/migrations/2.0/docs/en) but with the ```./doctrine``` command being replaced by ```li3 doctrine```. 
