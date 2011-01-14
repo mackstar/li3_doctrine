@@ -74,7 +74,7 @@ class User
  
 Then this can be model can be used and accessed from your controller in the following fashion:
 
-First be sure to include the relavant namespace and use statements
+First be sure to include the relevant namespace and use statements
 {{{namespace app\controllers;
 
 use \app\models\User;
@@ -87,6 +87,40 @@ $user = new User();
 $user->setName('Lithium Guy');
 $em->persist($user);
 $em->flush();}}}
+
+## Using Repositories
+
+Doctrine recommends the use a data presentation layer called a 'repository', these have been referred to as a 'Data Access Object' or 'DAO' in other languages. This is where you place much the business logic specific to getting data into your app. You can read more about repositories on the Doctrine website [here](http://www.doctrine-project.org/docs/orm/2.0/en/reference/working-with-objects.html?highlight=repositories#custom-repositories)
+
+You can choose where you would like to store these repositories, but I recommend ```app/repositories``` or ```app/resources/repositories```. In your model/entity you must now specify where the repository is located.
+
+#For Example
+{{{namespace app\models;
+
+/**
+ * @Entity(repositoryClass="app\resources\repositories\UserRepository")
+ */
+class User{
+}}}
+
+Because of the built in name-spacing in Lithium, Doctrine knows that the repository for the User more can be found in the specified class location.
+
+We can now create the file ```app/resources/repositories/UserRepository.php``` as in the trivial example below
+
+{{{namespace app\resources\repositories;
+
+use Doctrine\ORM\EntityRepository;
+use app\models;
+
+class UserRepository extends EntityRepository
+{   
+    public function getLithiumGuy()
+    {
+        return self::findOneBy(
+            array('name' => 'Lithium Guy')
+        );       
+    }
+}}}}
 
 ## Using the Doctrine Console
 
