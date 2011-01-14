@@ -76,6 +76,7 @@ Then this can be model can be used and accessed from your controller in the foll
 
 First be sure to include the relavant namespace and use statements
 {{{namespace app\controllers;
+
 use \app\models\User;
 use \lithium\data\Connections;}}}
 
@@ -86,3 +87,14 @@ $user = new User();
 $user->setName('Lithium Guy');
 $em->persist($user);
 $em->flush();}}}
+
+## Using Doctrine Migrations
+
+We have now added the ability to use Doctrine Migrations. Once you have added your connection to a working database, from your commmand line go to the root of your application and type:
+{{{li3 doctrine migrationinstall}}}
+
+This will install all necessary configuration files, directories and latest version of the Doctrine Migrations project.
+
+You can then type ```li3 doctrine list migrations``` for a full list of options. Type ```li3 doctrine migrations:generate``` to create your first migration. The migration files will be created in yourapp/migrations. 
+
+All migration commands are avaible as in http://www.doctrine-project.org/projects/migrations/2.0/docs/en but with the ```./doctrine``` command being replaced by ```li3 doctrine```. 
