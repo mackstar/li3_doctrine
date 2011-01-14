@@ -10,6 +10,7 @@
 namespace li3_doctrine\extensions\command;
 
 use \lithium\data\Connections;
+use \Doctrine\Common\ClassLoader;
 use \Doctrine\ORM\Configuration;
 /**
  * The `doctrine` command provides a direct interface between the Doctrine command-line and Lithium
@@ -76,7 +77,24 @@ class Doctrine extends \lithium\console\Command {
 			$args = $this->request->argv;
 		}
 		
+		// Check if we need to add the migration configuration file
+		$migration = false;
+		$migrationConfig = true;
+		foreach ($args as $arg) {
+			if (strstr($arg, 'migrations:')) {
+				$migration = true;
+			}
+			if (strstr($arg, '--configuration=')) {
+				$migrationConfig = false;
+			}
+		}
+		
+		if ($migration && $migrationConfig) {
+			$args[]='--configuration='.dirname(dirname(__DIR__)).'/config/migrations.yml';
+		}
+
 		$input =  new \Symfony\Component\Console\Input\ArgvInput($args);
+
 		$conn = Connections::get($this->connection);
 		$conn->_config = $conn->_config + $defaults;
 		
@@ -107,8 +125,9 @@ class Doctrine extends \lithium\console\Command {
 		//EntityManager
 		$em = \Doctrine\ORM\EntityManager::create($conn->_config, $config);
 		$helperSet = new \Symfony\Component\Console\Helper\HelperSet(array(
-		    'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()),
-		    'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em)
+			'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()),
+			'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em),
+			'dialog' => new \Symfony\Component\Console\Helper\DialogHelper()
 		));
 		
 		//CLI
@@ -139,6 +158,15 @@ class Doctrine extends \lithium\console\Command {
 			new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
 			new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
 			new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
+
+			// Migration Commands
+			new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
+			new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),
+			new \Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand(),
+			new \Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand(),
+			new \Doctrine\DBAL\Migrations\Tools\Console\Command\StatusCommand(),
+			new \Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand(),
+
 		));
 		$cli->run($input);
 	}

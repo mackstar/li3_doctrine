@@ -9,7 +9,7 @@
 use lithium\core\Libraries;
 use lithium\core\ConfigException;
 
-$libraries = array('Doctrine\Common', 'Doctrine\DBAL', 'Doctrine\ORM', 'Symfony');
+$libraries = array('Doctrine\Common', 'Doctrine\DBAL', 'Doctrine\ORM', 'Doctrine\Migrations', 'Symfony');
 
 foreach($libraries as $name) {
 	if (!Libraries::get($name)) {
