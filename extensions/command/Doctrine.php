@@ -59,8 +59,15 @@ class Doctrine extends \lithium\console\Command {
 	 */
 	protected $_repositoryPath = 'git://github.com/doctrine/doctrine2.git';
 
+	/**
+	 * The path to the Migrations repository from which the version tag will be checked out.
+	 *
+	 * @var string
+	 */
+	protected $_migrationsRepositoryPath = 'git://github.com/doctrine/migrations.git';
+
 	public function run($args = array()) {
-		
+
 		$defaults = array(
 			'proxy' => array(
 				'auto' => true,
@@ -72,16 +79,20 @@ class Doctrine extends \lithium\console\Command {
 			'configuration' => null,
 			'eventManager' => null,
 		);
-		
+
 		if ($this->request->params['action'] != 'run') {
 			$args = $this->request->argv;
 		}
-		
+
 		// Check if we need to add the migration configuration file
-		$migration = false;
+		$migrationCommand = false;
 		$migrationConfig = true;
+		$migration = false;
 		foreach ($args as $arg) {
 			if (strstr($arg, 'migrations:')) {
+				$migrationCommand = true;
+			}
+			if (strstr($arg, 'migrations')) {
 				$migration = true;
 			}
 			if (strstr($arg, '--configuration=')) {
@@ -89,7 +100,7 @@ class Doctrine extends \lithium\console\Command {
 			}
 		}
 		
-		if ($migration && $migrationConfig) {
+		if ($migrationCommand && $migrationConfig) {
 			$args[]='--configuration='.dirname(dirname(__DIR__)).'/config/migrations.yml';
 		}
 
@@ -158,63 +169,37 @@ class Doctrine extends \lithium\console\Command {
 			new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
 			new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
 			new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
-
-			// Migration Commands
-			new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
-			new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),
-			new \Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand(),
-			new \Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand(),
-			new \Doctrine\DBAL\Migrations\Tools\Console\Command\StatusCommand(),
-			new \Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand(),
-
 		));
+
+		// If command called is a doctrine migration command
+		if ($migration) {
+			$cli->addCommands(array(
+			// Migration Commands
+				new \Doctrine\DBAL\Migrations\Tools\Console\Command\DiffCommand(),
+				new \Doctrine\DBAL\Migrations\Tools\Console\Command\ExecuteCommand(),
+				new \Doctrine\DBAL\Migrations\Tools\Console\Command\GenerateCommand(),
+				new \Doctrine\DBAL\Migrations\Tools\Console\Command\MigrateCommand(),
+				new \Doctrine\DBAL\Migrations\Tools\Console\Command\StatusCommand(),
+				new \Doctrine\DBAL\Migrations\Tools\Console\Command\VersionCommand()
+			));
+		}
 		$cli->run($input);
 	}
-	
 
 	public function install() {
-		$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
+		
 		$this->out('');
 		$this->out("Preparing to install Doctrine...", 2);
-		$this->out("Checking permissions on {$this->installPath}...");
 
-		if (!is_writable($this->installPath)) {
-			$message = "Could not write to libraries directory, please run this command with";
-			$this->out("{$message} appropriate privileges.");
-			return;
-		}
-
-		if (!is_dir("{$this->installPath}/_source")) {
-			mkdir("{$this->installPath}/_source");
-		}
-		$this->out("Checking Directory...");
-
-		if (getcwd() == LITHIUM_LIBRARY_PATH) {
-			$this->installPath = $this->installPath ?: LITHIUM_LIBRARY_PATH;
-		} elseif (getcwd() == LITHIUM_APP_PATH) {
-			$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
-		} else {
-			$message = 'You need to intall Doctrine from either the Lithium application path or ';
-			$message .= 'from the library path.';
-			$this->out($message);
-			$this->_stop(0); 
-		}
-		$pattern = '/^git version \d+\.\d+\./';
-
-		$this->out("Checking Git access...");
-		exec("git --version", $result);
-		$pattern = '/^git version \d+\.\d+\./';
-
-		if (!is_array($result) || count($result) < 1 || !preg_match($pattern, $result[0])) {
-			$message = "Unable to access the 'git' command. It should be installed and accessible";
-			$this->out("{$message} from your system path.");
-		}
+		$this->checkGit();
+		$this->writeDirectory($this->getInstallPath().'/_source');
+		
 		$message = "Creating git {$this->installCmd} of Doctrine in";
-		$this->in("{$message} {$this->installPath}/_source, press Enter to continue:");
+		$this->in("{$message} ".$this->getInstallPath()."/_source, press Enter to continue:");
 
 		$repository = "{$this->_repositoryPath}";
-		$local = "{$this->installPath}/_source/Doctrine2";
-		$install = "{$this->installPath}/Doctrine";
+		$local = "{$this->getInstallPath()}/_source/Doctrine2";
+		$install = $this->getDoctrineBase();
 
 		passthru("git {$this->installCmd} {$repository} {$local}");
 		$current = getcwd();
@@ -224,9 +209,7 @@ class Doctrine extends \lithium\console\Command {
 		$target = "{$local}/lib/Doctrine";
 		chdir($current);
 
-		if (!is_dir($install)) {
-			mkdir($install);
-		}
+		$this->writeDirectory($install);
 
 		$symLinks = array(
 			array(
@@ -248,14 +231,8 @@ class Doctrine extends \lithium\console\Command {
 		);
 
 		foreach ($symLinks as $symLink) {
-  		if (!file_exists($symLink['install'])) {
-  			if (!symlink($symLink['target'], $symLink['install'])) {
-  				$this->out("Symlink creation failed. Please link {$symLink['target']} to {$symLink['install']}");
-  		  }
-  		} elseif (!is_link($symLink['install']) || readlink($symLink['install']) != $symLink['target']) {
-  		  $this->out("A bad symlink for Doctrine exists. Please point {$symLink['target']} to {$symLink['install']}.");
-  	  }
-    }
+			$this->createSymLink($symLink['install'], $symLink['target']);
+		}
 
 		$message = "Installation complete. You may now add Doctrine database connections to your";
 		$this->out("{$message} application.", 2);
@@ -268,13 +245,91 @@ class Doctrine extends \lithium\console\Command {
 			$this->out("{$message} config/bootstrap.php.", 2);
 		}
 	}
-	
+
 	public function migrationinstall(){
-		$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
-		$this->out('');
-		$this->out("Preparing to install Doctrine...", 2);
-		$this->out("Checking permissions on...");
+		$this->checkGit();
+		if(!is_dir($this->getInstallPath().'/_source')){
+			$this->out('Please install Doctrine before installing Doctrine Migrations');
+			$this->out('From your app route type: "li3 doctrine install"');
+			return;
+		}
+		$this->writeDirectory(LITHIUM_APP_PATH.'/migrations');
 		
+		$message = "Creating git {$this->installCmd} of Doctrine Migrations in";
+		$this->in("{$message} ".$this->getInstallPath()."/_source, press Enter to continue:");
+		
+		$local = "{$this->installPath}/_source/Migrations";
+
+		passthru("git {$this->installCmd} {$this->_migrationsRepositoryPath} {$local}");
+
+		$this->createSymLink("{$this->getDoctrineBase()}/DBAL/Migrations", "{$local}/lib/Doctrine/DBAL/Migrations");
+		$message = "\n\nInstallation complete. You may now use Doctrine Migrations through your command ";
+		$message .= "line. \nType li3 doctrine list migrations for a full list of options. \nType li3 ";
+		$message .= "doctrine migrations:generate to create your first migration. \nThe migration file ";
+		$message .= "will be created in yourapp/migrations. \nAll migration commands are avaible as in ";
+		$message .= "http://www.doctrine-project.org/projects/migrations/2.0/docs/en \nbut with ./doctrine";
+		$message .= "command being replaced by 'li3 doctrine' ";
+		$this->out($message);
+	}
+
+	protected function createSymLink($install, $target){
+		if (!file_exists($install)) {
+			if (!symlink($target, $install)) {
+				$this->out("Symlink creation failed. Please link {$target} to {$install}");
+			}
+		} elseif (!is_link($install) || readlink($install) != $target) {
+			$this->out("A bad symlink exists. Please point {$target} to {$install}.");
+		}
+	}
+
+	protected function getInstallPath(){
+		if (!$this->installPath) {
+			if (getcwd() == LITHIUM_LIBRARY_PATH) {
+				$this->installPath = LITHIUM_LIBRARY_PATH;
+			} elseif (getcwd() == LITHIUM_APP_PATH) {
+				$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
+			} else {
+				$message = 'You need to install Doctrine from either the Lithium application path or ';
+				$message .= 'from the library path.';
+				$this->out($message);
+				$this->_stop(0); 
+			}
+		}
+		return $this->installPath;
+	}
+
+	protected function checkWritable($directory) {
+		$this->out("Checking permissions on {$directory}...");
+		$info = pathinfo($directory);
+		if(!is_writable($directory)){
+			$message = "Could not write to {$info['basename']} directory ({$directory}), ";
+			$this->out("{$message} please run this command with appropriate privileges.");
+			return;
+		}
+	}
+
+	protected function writeDirectory($directory) {
+		if (!is_dir($directory)) {
+			$info = pathinfo($directory);
+			$this->checkWritable($info['dirname']);
+			mkdir($directory);
+		}
+	}
+
+	protected function getDoctrineBase() {
+		return "{$this->getInstallPath()}/Doctrine";
+	}
+
+	protected function checkGit() {
+		$this->out("Checking git installation");
+		exec("git --version", $result);
+		$pattern = '/^git version \d+\.\d+\./';
+
+		if (!is_array($result) || count($result) < 1 || !preg_match($pattern, $result[0])) {
+			$message = "Unable to access the 'git' command. It should be installed and accessible";
+			$this->out("{$message} from your system path.");
+			return;
+		}
 	}
 }
 
