@@ -1,0 +1,141 @@
+## li3_doctrine: Lithium + Doctrine 統合プロジェクト
+
+このプラグインを使うと、アプリケーション開発者は、モデルレイヤーの一部、または全部を[Doctrine Object-Relational Mapper](http://www.doctrine-project.org/)を使ってシームレスに実装できます。
+
+このプラグインをインストールするには、単純に次のようにします (環境に合わせてスラッシュは変更してください):
+
+{{{
+cd /path/to/your/app/libraries
+git clone code@dev.lithify.me:li3_doctrine.git
+}}}
+
+cloneが終わったら、`app/config/bootstrap/libraries.php` を開き、次の行を追加します:
+
+{{{ Libraries::add('li3_doctrine'); }}}
+
+これで準備は完了ですが、Doctrine本体を別途インストールする必要があります。`li3` コマンドへのパスが設定されている場合は、次のコマンドを実行してDoctrineをインストールできます:
+
+{{{
+cd .. && li3 doctrine install
+}}}
+
+最後に、Doctrine用のデータベース接続設定を `app/config/bootstrap/connections.php` ファイルに次のように記述します:
+
+{{{
+Connections::add('default', array(
+	'type' => 'doctrine',
+	'driver' => 'pdo_mysql',
+	'host' => 'localhost',
+	'user' => 'root',
+	'password' => 'password',
+	'dbname' => 'blog_li3'
+));
+}}}
+
+
+アプリケーション内でDoctrineのモデルを使うには、次の例のようなDoctrineのエンティティクラスをモデルディレクトリに追加します:
+{{{<?php
+
+// app/models/User.php
+
+namespace app\models;
+
+/**
+ * @Entity
+ */
+class User
+{
+    /**
+     * @Id
+     * @Column(type="integer")
+     * @GeneratedValue(strategy="IDENTITY")
+     */
+    protected $id;
+
+    /**
+     * @Column(type="string", length="255")
+     */
+    protected $name;
+
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+}
+
+?>}}}
+
+このモデルをコントローラから利用する手順は次のとおりです。
+
+最初に、必要なnamespaceとuseをコントローラのコードに追加します。
+{{{namespace app\controllers;
+
+use \app\models\User;
+use \lithium\data\Connections;}}}
+
+アクションメソッド内で、次のように記述できます。
+
+{{{$em = Connections::get('default')->getEntityManager();
+$user = new User();
+$user->setName('Lithium Guy');
+$em->persist($user);
+$em->flush();}}}
+
+## リポジトリの使い方
+
+Doctrineでは、データのプレゼンテーション層に 'リポジトリ' を使うことが推奨されています。これは、他の言語では 'データアクセスオブジェクト（Data Access Object）' や 'DAO' と呼ばれているものです。リポジトリには、アプリケーションで利用するデータを取得するようなビジネスロジックを記述します。リポジトリについての詳細は、[DoctrineのWebサイト](http://www.doctrine-project.org/docs/orm/2.0/en/reference/working-with-objects.html?highlight=repositories#custom-repositories) を参照してください。
+
+リポジトリの配置場所はカスタマイズできますが、```app/repositories``` または ```app/resources/repositories``` に保存することをおすすめします。モデルまたはエンティティで、リポジトリの場所を次のように指定します。
+
+#例
+{{{namespace app\models;
+
+/**
+ * @Entity(repositoryClass="app\resources\repositories\UserRepository")
+ */
+class User{
+}}}
+
+Doctrineライブラリは、Lithiumに組み込まれている名前空間により、ここで指定したクラスの場所からUser用のリポジトリを見つけることができます。
+
+リポジトリ用の ```app/resources/repositories/UserRepository.php``` ファイルを作成します。典型的な内容は次のようになります。
+
+{{{namespace app\resources\repositories;
+
+use Doctrine\ORM\EntityRepository;
+use app\models;
+
+class UserRepository extends EntityRepository
+{
+    public function getLithiumGuy()
+    {
+        return self::findOneBy(
+            array('name' => 'Lithium Guy')
+        );
+    }
+}}}}
+
+## Doctrineコンソールの使い方
+
+Doctrineには高機能なCLI(コマンドラインインターフェイス)があり、さまざまなDoctrineの機能を制御できます。li3_doctrineプラグインを使うと、Doctrineのコンソール機能をアプリケーションから呼び出せます。
+
+`li3` コマンドがシステムパスに設定されている場合、アプリケーションのルートディレクトリに移動し、```li3 doctrine``` というコマンドにより、各種Doctrineコマンドを実行できます。```li3 doctrine``` を実行すると、オプションの一覧が表示されます。モデルやエンティティのプロキシオブジェクトを作成するには、```li3 doctrine orm:generate-proxies``` というコマンドを使います。
+
+これらのコマンドでは、```default``` コネクションがデフォルトで利用されることに注意してください。コマンドで別のコネクションを使いたい場合は、connectionフラグを利用します。例： ```li3 doctrine orm:generate-proxies --connection=other```
+
+## Doctrineマイグレーションの使い方
+
+Doctrineのマイグレーション機能もli3_doctrineプラグインから利用できます。作業中のデータベースへの接続情報を設定し、コマンドラインでアプリケーションのルートディレクトリへ移動して次のコマンドを実行します:
+{{{li3 doctrine migrationinstall}}}
+
+このコマンドを実行すると、必要な設定ファイル、ディレクトリ、およびDoctrineのマイグレーションプロジェクトの最新版がインストールされます。
+
+インストールが完了したら、コマンドラインで ```li3 doctrine list migrations``` と入力すると、マイグレーションコマンドのオプションの一覧が表示されます。```li3 doctrine migrations:generate``` コマンドを実行すると、最初のマイグレーションが生成されます。マイグレーションファイルは、yourapp/migrations ディレクトリに保存されます。
+
+すべてのマイグレーションコマンドの詳細は、[Doctrineマイグレーションプロジェクトのドキュメント](http://www.doctrine-project.org/projects/migrations/2.0/docs/en) を参照してください（```./doctrine``` コマンドを ```li3 doctrine``` に置き換えてください）。
