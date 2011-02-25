@@ -45,14 +45,6 @@ class Doctrine extends \lithium\console\Command {
 	public $installCmd = 'clone';
 
 	/**
-	 * The libraries/ directory into which Doctrine should be installed. This should be either your
-	 * application's local libraries directory, or the system-wide libraries directory.
-	 *
-	 * @var string
-	 */
-	public $installPath;
-
-	/**
 	 * The path to the Doctrine repository from which the version tag will be checked out.
 	 *
 	 * @var string
@@ -199,13 +191,13 @@ class Doctrine extends \lithium\console\Command {
 		$this->out("Preparing to install Doctrine...", 2);
 
 		$this->checkGit();
-		$this->writeDirectory($this->getInstallPath().'/_source');
+		$this->writeDirectory($this->_getInstallPath().'/_source');
 		
 		$message = "Creating git {$this->installCmd} of Doctrine in";
-		$this->in("{$message} ".$this->getInstallPath()."/_source, press Enter to continue:");
+		$this->in("{$message} ".$this->_getInstallPath()."/_source, press Enter to continue:");
 
 		$repository = "{$this->_repositoryPath}";
-		$local = "{$this->getInstallPath()}/_source/Doctrine2";
+		$local = "{$this->_getInstallPath()}/_source/Doctrine2";
 		$install = $this->getDoctrineBase();
 
 		passthru("git {$this->installCmd} {$repository} {$local}");
@@ -232,7 +224,7 @@ class Doctrine extends \lithium\console\Command {
 				'target'=>"{$local}/lib/vendor/doctrine-dbal/lib/Doctrine/DBAL"
 			),
 			array(
-				'install' => "{$this->installPath}/Symfony",
+				'install' => "{$this->_getInstallPath()}/Symfony",
 				'target'=>"{$local}/lib/vendor/Symfony"
 			),
 		);
@@ -255,7 +247,7 @@ class Doctrine extends \lithium\console\Command {
 
 	public function migrationinstall(){
 		$this->checkGit();
-		if(!is_dir($this->getInstallPath().'/_source')){
+		if(!is_dir($this->_getInstallPath().'/_source')){
 			$this->out('Please install Doctrine before installing Doctrine Migrations');
 			$this->out('From your app route type: "li3 doctrine install"');
 			return;
@@ -263,9 +255,9 @@ class Doctrine extends \lithium\console\Command {
 		$this->writeDirectory(LITHIUM_APP_PATH.'/migrations');
 		
 		$message = "Creating git {$this->installCmd} of Doctrine Migrations in";
-		$this->in("{$message} ".$this->getInstallPath()."/_source, press Enter to continue:");
+		$this->in("{$message} ".$this->_getInstallPath()."/_source, press Enter to continue:");
 		
-		$local = "{$this->installPath}/_source/Migrations";
+		$local = "{$this->_getInstallPath()}/_source/Migrations";
 
 		passthru("git {$this->installCmd} {$this->_migrationsRepositoryPath} {$local}");
 
@@ -289,22 +281,6 @@ class Doctrine extends \lithium\console\Command {
 		}
 	}
 
-	protected function getInstallPath(){
-		if (!$this->installPath) {
-			if (getcwd() == LITHIUM_LIBRARY_PATH) {
-				$this->installPath = LITHIUM_LIBRARY_PATH;
-			} elseif (getcwd() == LITHIUM_APP_PATH) {
-				$this->installPath = $this->installPath ?: LITHIUM_APP_PATH . '/libraries';
-			} else {
-				$message = 'You need to install Doctrine from either the Lithium application path or ';
-				$message .= 'from the library path.';
-				$this->out($message);
-				$this->_stop(0); 
-			}
-		}
-		return $this->installPath;
-	}
-
 	protected function checkWritable($directory) {
 		$this->out("Checking permissions on {$directory}...");
 		$info = pathinfo($directory);
@@ -324,7 +300,7 @@ class Doctrine extends \lithium\console\Command {
 	}
 
 	protected function getDoctrineBase() {
-		return "{$this->getInstallPath()}/Doctrine";
+		return "{$this->_getInstallPath()}/Doctrine";
 	}
 
 	protected function checkGit() {
@@ -337,6 +313,11 @@ class Doctrine extends \lithium\console\Command {
 			$this->out("{$message} from your system path.");
 			return;
 		}
+	}
+	
+	
+	protected function _getInstallPath() {
+		return dirname(dirname(dirname(__DIR__)));
 	}
 }
 
