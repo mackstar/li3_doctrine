@@ -50,6 +50,7 @@ class Doctrine extends \lithium\data\source\Database {
 			'mapping' => array('class' => null, 'path' => LITHIUM_APP_PATH . '/models'),
 			'configuration' => null,
 			'eventManager' => null,
+			'utf-8' => true,
 		);
 		$config = Set::merge($defaults, $config);
 
@@ -84,7 +85,7 @@ class Doctrine extends \lithium\data\source\Database {
 		$this->_em = EntityManager::create($config, $configuration, $eventManager);
 		$this->_sm = $this->_em->getConnection()->getSchemaManager();
 
-		if ($this->_em->getConnection()->getDriver() instanceof Driver\PDOMySql\Driver) {
+		if ($this->_em->getConnection()->getDriver() instanceof Driver\PDOMySql\Driver && $config['utf-8']) {
 			$this->_em->getEventManager()->addEventSubscriber(
 				new MysqlSessionInit('utf8', 'utf8_unicode_ci')
 			);
