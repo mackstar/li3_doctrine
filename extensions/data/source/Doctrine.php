@@ -430,6 +430,9 @@ class Doctrine extends \lithium\data\source\Database {
 	public function encoding($encoding = null) {
 	}
 
+	public function sources($class = null){
+	}
+
 	public function error() {
 	}
 
